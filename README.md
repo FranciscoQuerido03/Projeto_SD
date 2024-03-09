@@ -1,7 +1,7 @@
-#Compile instructions: <br>
+#Compile instructions:
 
-javac -d . *.java
-java -cp . .\HelloServer.java
+javac -d . *.java<br>
+java -cp . .\name.java<br>
 
 #Files x-planation:
 
