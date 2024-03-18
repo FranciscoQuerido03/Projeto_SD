@@ -14,7 +14,7 @@ public class Client {
 
 		try {
 			Scanner scanner = new Scanner(System.in);
-			Request Conection = (Request) Naming.lookup("rmi://localhost:1099/request");
+			Request Conection = (Request) Naming.lookup("rmi://localhost:1098/request");
 
             String str = scanner.nextLine();
 			
