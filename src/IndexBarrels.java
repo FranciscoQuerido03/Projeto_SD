@@ -9,10 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import sd_projeto.Barrel_I;
-import sd_projeto.Request;
-import sd_projeto.Urls_list;
-
 public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 	HashMap<String, List<String>> hashMap = new HashMap<>();

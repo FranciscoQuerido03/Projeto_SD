@@ -6,21 +6,23 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.server.*;
 //import java.net.*;
 
-import sd_projeto.Urls_list;
+import sd_projeto.Client_I;
 
 public class GateWay extends UnicastRemoteObject implements Request {
 
 	public static String client_request;
 	static Barrel_I barrels[];
 	static int count = 0;
+	static Client_I client;
 
 	public GateWay() throws RemoteException {
 		super();
 		barrels = new Barrel_I[4];
 	}
 
-	public void send_request(Message m) throws RemoteException {
+	public void send_request(Client_I c, Message m) throws RemoteException {
         System.out.println("GateWay: " + m.toString());
+		client = c;
 		client_request = m.toString();
 		barrels[count-1].request(m.text);
     }
@@ -33,6 +35,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 
 	public void answer(Urls_list m) throws RemoteException{
 		System.out.println(m.toString());
+		client.print_on_client(m);
 	}
 
 	// =======================================================
