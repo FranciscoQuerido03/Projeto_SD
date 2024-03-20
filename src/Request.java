@@ -1,9 +1,0 @@
-package sd_projeto;
-
-import java.rmi.*;
-
-public interface Request extends Remote {
-    public void send_request(Client_I c, Message m) throws RemoteException;
-    public void subscribe(Barrel_I barrel) throws RemoteException;
-    public void answer(Urls_list m) throws RemoteException;
-}
