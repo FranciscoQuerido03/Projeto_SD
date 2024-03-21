@@ -1,0 +1,3 @@
+rmi://localhost:1099/request_barrel
+224.3.2.1
+4321
