@@ -1,7 +1,6 @@
 package sd_projeto;
 
 
-import java.sql.SQLOutput;
 import java.util.Scanner;
 import java.net.MalformedURLException;
 import java.rmi.*;
@@ -12,6 +11,7 @@ public class Client extends UnicastRemoteObject implements Client_I {
 	public Client() throws RemoteException {
 		super();
 	}
+
 
 	public void print_on_client(Urls_list list) throws java.rmi.RemoteException {
 		System.out.println(list.toString());

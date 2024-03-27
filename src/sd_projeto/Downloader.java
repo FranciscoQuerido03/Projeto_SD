@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
 
 public class Downloader implements Runnable {
     private static final String MULTICAST_ADDRESS = "224.3.2.1"; //temos de escolher um endereco dps
@@ -31,6 +33,8 @@ public class Downloader implements Runnable {
             /*
                 Aqui nao sei se junte todas as mensagens e depois envio ou se envio uma por uma
              */
+            QueueInterface queue = (QueueInterface) Naming.lookup("rmi://localhost:1096/request_downloader");
+
             for (Element link : links) {
                 String message = link.attr("abs:href") + " " + link.text();
                 byte[] buffer = message.getBytes();
@@ -39,13 +43,19 @@ public class Downloader implements Runnable {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
                 socket.send(packet);
                 System.out.println("Sent message: " + message);
+
+                queue.addLast(link.attr("abs:href"));
             }
+
+
 
             //IndexInterface index = (IndexInterface) Naming.lookup("rmi://localhost/index");
             //index.add(links.get(0).attr("abs:href"),  links.text());
 
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (NotBoundException e) {
+            throw new RuntimeException(e);
         }
     }
 

@@ -15,9 +15,13 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	static int count = 0;
 	static Client_I client;
 
-	public GateWay() throws RemoteException {
+	static QueueInterface queue;
+
+	public GateWay() throws RemoteException, MalformedURLException, NotBoundException {
 		super();
 		barrels = new Barrel_I[4];
+		queue = (QueueInterface) Naming.lookup("rmi://localhost:1097/request_gateway");
+
 	}
 
 	public void send_request(Client_I c, Message m) throws RemoteException {
@@ -25,6 +29,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		client = c;
 		client_request = m.toString();
 		barrels[count-1].request(m.text);
+		queue.addFirst(m.text);
     }
 
 	public void subscribe(Barrel_I barrel) throws RemoteException{
@@ -45,12 +50,13 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			GateWay h = new GateWay();
 			LocateRegistry.createRegistry(1099).rebind("request_barrel", h);
 			LocateRegistry.createRegistry(1098).rebind("request", h);
+
 			System.out.println("GateWay ready.");
 
-		} catch (RemoteException re) {
+		} catch (RemoteException | MalformedURLException | NotBoundException re) {
 			System.out.println("Exception in GateWay.main: " + re);
 		}
-	}
+    }
 
 
 }

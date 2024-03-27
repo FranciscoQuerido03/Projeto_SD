@@ -26,7 +26,6 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	
 	public IndexBarrels() throws RemoteException {
 		super();
-
 	}
 
 	public void request(String m) throws java.rmi.RemoteException {
@@ -72,6 +71,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				byte[] buffer = new byte[256];
 				DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 				socket.receive(packet);
+				System.out.println("Received message: " + new String(packet.getData(), 0, packet.getLength()));
 
 				DealPacket(packet);
 			}
