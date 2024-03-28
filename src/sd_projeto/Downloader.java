@@ -1,3 +1,5 @@
+package sd_projeto;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -36,7 +38,7 @@ public class Downloader implements Runnable {
                 InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
                 socket.send(packet);
-                print("Thread: " + t.threadId() + " enviado: " + message);
+                System.out.println("Sent message: " + message);
             }
 
             //IndexInterface index = (IndexInterface) Naming.lookup("rmi://localhost/index");

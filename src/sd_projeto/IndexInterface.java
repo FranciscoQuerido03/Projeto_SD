@@ -1,3 +1,4 @@
+package sd_projeto;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
