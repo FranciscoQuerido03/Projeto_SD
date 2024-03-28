@@ -31,8 +31,8 @@ public class Main {
         int urls_size = urls.size();
 
         for (int i = 0; i < urls_size; i++) {
-            String url = urls.removeFirst();
-            new Downloader(url);
+            //String url = urls.removeFirst();
+            new Downloader("https://www.google.com");
         }
 
     }
