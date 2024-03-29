@@ -1,5 +1,11 @@
 package sd_projeto;
 
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.MulticastSocket;
+import java.net.NetworkInterface;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.*;
@@ -39,24 +45,6 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		throw new RemoteException("Barrel Disconnection failed... Barrel not found");
 	}
 
-	public void V_I(Barrel_I barrel) throws RemoteException {
-		if(count > 0){
-			new Thread(() -> {
-				try {
-					barrel.Update_mem(true, (Barrel_I) barrel);
-				} catch (RemoteException e){
-					System.out.println("Erro");
-				} 
-			}).start();
-			//System.out.println("Barrel do it");
-			for(int i = 0; i<count; i++){
-				System.out.println("Barrel do it");
-				barrels[i].Mc_HM_Content();		//Manda todos os barrels fazerem multicast para atualizar algum outro barrel
-			}
-		} else
-			barrel.Update_mem(false, (Barrel_I) barrel);
-	}
-
 	public void err_no_matches(Message s) throws RemoteException {
 		client.print_err_2_client(s);
 	}
@@ -72,7 +60,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 					lb = 0;
 				System.out.println("lb " + lb);
 				//System.out.println(barrels[lb]);
-				//barrels[lb].printWordsHM();
+				barrels[lb].printWordsHM();
 				barrels[lb].request(client_request.toLowerCase());
 				lb++;
 			}else{
@@ -84,8 +72,24 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	public void subscribe(Barrel_I barrel) throws RemoteException{
 		//System.out.println("Subscri");
 		//System.out.println(barrel);
-		if(lb <0)
+		if(lb < 0)
 			lb = 0;
+		if(count > 0){
+			System.out.println("Sync Needed Cuh");
+			try (MulticastSocket socket = new MulticastSocket(4321)) {
+                String message = "Sync";
+                byte[] buffer = message.getBytes();
+
+                InetAddress group = InetAddress.getByName("224.3.2.1");
+				socket.joinGroup(new InetSocketAddress(group, 0), NetworkInterface.getByIndex(0));
+
+				DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, 4321);
+				socket.send(packet);
+
+            } catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		barrels[count] = barrel;
 		count++;
 	}
