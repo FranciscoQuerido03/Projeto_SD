@@ -16,4 +16,3 @@ public interface QueueInterface extends Remote{
     public void addLast(String url) throws RemoteException;
 
 }
-
