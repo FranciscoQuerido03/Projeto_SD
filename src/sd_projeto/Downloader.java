@@ -32,36 +32,6 @@ public class Downloader extends Thread {
         boolean flag;
         String url;
 
-        try {
-            while (true) {
-                url = queue.getFirst();
-                if(url != null) {
-                    lock.lock();
-                    flag = bloomFilter.contains(url);
-                    lock.unlock();
-
-                    if (!flag) {
-                        try {
-                            MulticastSocket socket = new MulticastSocket();
-                            Document doc = Jsoup.connect(url).get();
-                            Elements links = doc.select("a[href]");
-                            print("\nLinks: (%d)", links.size());
-
-                            for (Element link : links) {
-                                String linkUrl = link.attr("abs:href");
-
-                                lock.lock();
-                                flag = bloomFilter.contains(linkUrl);
-                                lock.unlock();
-
-                                if (!flag) {
-                                    String message = linkUrl + " " + link.text();
-                                    byte[] buffer = message.getBytes();
-                                    DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
-                                    socket.send(packet);
-                                    System.out.println("Sent message: " + message);
-
-                                    queue.addLast(linkUrl);
 
                                     lock.lock();
                                     bloomFilter.add(linkUrl);
@@ -72,16 +42,16 @@ public class Downloader extends Thread {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                    }
+}
                     else{
                         System.out.println("URL already visited: " + url);
                     }
-                }
-            }
+}
+}
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-    }
+}
 
     public static void main(String[] args) throws RemoteException, NotBoundException, UnknownHostException, MalformedURLException {
         queue = (QueueInterface) Naming.lookup("rmi://localhost:1096/request_downloader");
