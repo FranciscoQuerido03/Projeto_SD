@@ -6,9 +6,11 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.rmi.Naming;
 
+import static java.lang.Thread.sleep;
+
 
 public class Main {
-    public static void main(String[] args) throws MalformedURLException, NotBoundException, RemoteException {
+    public static void main(String[] args) throws MalformedURLException, NotBoundException, RemoteException, InterruptedException {
         //QueueInterface queue = (QueueInterface) Naming.lookup("rmi://localhost/queue");
         ArrayList<String> urls = new ArrayList<>();
 
@@ -31,8 +33,7 @@ public class Main {
         int urls_size = urls.size();
 
         for (int i = 0; i < urls_size; i++) {
-            //String url = urls.removeFirst();
-            new Downloader("https://www.google.com");
+            String url = urls.removeFirst();
         }
 
     }

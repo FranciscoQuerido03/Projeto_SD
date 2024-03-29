@@ -21,6 +21,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	private static String MULTICAST_ADDRESS = "224.3.2.1";
 	private static int PORT = 4321;
 	
+
 	public static int numBarrels;
 	public int id;
 

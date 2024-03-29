@@ -6,47 +6,72 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
+import java.net.*;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-public class Downloader implements Runnable {
-    private static final String MULTICAST_ADDRESS = "224.3.2.1"; //temos de escolher um endereco dps
-    private static final int PORT = 4321; //temos de escolher uma porta dps
-    private String url;
-    private Thread t;
+public class Downloader extends Thread {
+    private static final String MULTICAST_ADDRESS = "224.3.2.1";
+    private static final int PORT = 4321;
+    private static InetAddress group;
+    private static final int NUM = 2;
+    private static QueueInterface queue;
+    private static BloomFilter<String>  bloomFilter;
+    private static final Lock lock = new ReentrantLock();
 
-    public Downloader(String url) {
-        this.url = url;
-        t = new Thread(this, url);
-        t.start();
+    public Downloader(int downloaderNumber) throws RemoteException {
+        setName("Downloader " + downloaderNumber);
+        start();
     }
 
+    @Override
     public void run() {
+        boolean flag;
+        String url;
 
-        try (MulticastSocket socket = new MulticastSocket()) {
-            Document doc = Jsoup.connect(url).get();
-            Elements links = doc.select("a[href]");
-            print("\nLinks: (%d)", links.size());
-            /*
-                Aqui nao sei se junte todas as mensagens e depois envio ou se envio uma por uma
-             */
-            for (Element link : links) {
-                String message = "Data " + link.attr("abs:href") + " " + link.text();
-                byte[] buffer = message.getBytes();
 
-                InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
-                socket.send(packet);
-                System.out.println("Sent message: " + message);
-            }
+                                    lock.lock();
+                                    bloomFilter.add(linkUrl);
+                                    lock.unlock();
+                                }
+                            }
 
-            //IndexInterface index = (IndexInterface) Naming.lookup("rmi://localhost/index");
-            //index.add(links.get(0).attr("abs:href"),  links.text());
-
-        } catch (IOException e) {
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+}
+                    else{
+                        System.out.println("URL already visited: " + url);
+                    }
+}
+}
+        } catch (RemoteException e) {
             e.printStackTrace();
         }
+}
+
+    public static void main(String[] args) throws RemoteException, NotBoundException, UnknownHostException, MalformedURLException {
+        queue = (QueueInterface) Naming.lookup("rmi://localhost:1096/request_downloader");
+        group = InetAddress.getByName(MULTICAST_ADDRESS);
+
+        bloomFilter = new BloomFilter<>(1328771238,s -> s.hashCode(),s -> s.hashCode() * s.length());
+
+        for (int i = 0; i < NUM; i++) {
+            new Downloader(i);
+            System.out.println("Downloader " + i + " ready.");
+        }
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            for (Thread t : Thread.getAllStackTraces().keySet()) {
+                if (t.getName().startsWith("Downloader")) {
+                    System.out.println(t + "Ending");
+                    t.interrupt();
+                }
+            }
+        }));
     }
 
     private static void print(String msg, Object... args) {
