@@ -29,214 +29,6 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		id = num;
 	}
 
-	public void Mc_HM_Content() throws java.rmi.RemoteException {
-		System.out.println("Synchorizing");
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt(); // Restore interrupted state
-		}
-		send_mc_urls();
-		send_mc_words();
-
-	}
-
-	private void send_mc_urls() {
-		String content = "";
-		MulticastSocket socket = null;
-		Map<String, Integer> urlsCopy;
-		byte[] buffer;
-		DatagramPacket packet;
-
-		try{
-
-			synchronized(urls) {
-				urlsCopy = new HashMap<>(urls);
-			}
-
-			socket = new MulticastSocket(PORT);
-			socket.setReuseAddress(true);
-			String modifiedAddress = MULTICAST_ADDRESS.substring(0, MULTICAST_ADDRESS.lastIndexOf(".") + 1) + this.id;
-			InetAddress mcastaddr = InetAddress.getByName(modifiedAddress);
-			socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
-
-
-			for (Map.Entry<String, Integer> entry : urlsCopy.entrySet()) {
-				//System.out.println(entry.getKey() + " " + entry.getValue());
-				Udp_Mc_Packet mc_packet = new Udp_Mc_Packet("Sync_url", entry.getKey() + " " + entry.getValue());
-				buffer = mc_packet.toString().getBytes();
-				packet = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
-				socket.send(packet);
-			}
-			
-			Udp_Mc_Packet mc_packet_end = new Udp_Mc_Packet("Sync_url_end", content);
-			buffer = mc_packet_end.toString().getBytes();
-			DatagramPacket packet_end = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
-			socket.send(packet_end);
-			//System.out.println("Sent");
-			String message = "";
-			while(!message.equals("ACK_SYNC")){
-				byte[] buffer_2 = new byte[256];
-				DatagramPacket packet_2 = new DatagramPacket(buffer_2, buffer_2.length);
-				socket.receive(packet_2);
-				message = new String(packet_2.getData(), 0, packet_2.getLength()).trim();
-			};
-
-			socket.close();
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	private void send_mc_words() {
-		String content = "";
-		MulticastSocket socket = null;
-		HashMap<String, int[]> wordsCopy;
-		byte[] buffer;
-		DatagramPacket packet;
-
-		try{
-
-			synchronized(urls) {
-				wordsCopy = new HashMap<>(words_HM);
-			}
-
-			socket = new MulticastSocket(PORT);
-			socket.setReuseAddress(true);
-			String modifiedAddress = MULTICAST_ADDRESS.substring(0, MULTICAST_ADDRESS.lastIndexOf(".") + 1) + this.id;
-			InetAddress mcastaddr = InetAddress.getByName(modifiedAddress);
-			socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
-
-
-			for (Map.Entry<String, int[]> entry : wordsCopy.entrySet()) {
-				//System.out.println(entry.getKey() + " " + entry.getValue());
-				StringBuilder messageBuilder = new StringBuilder();
-				messageBuilder.append(entry.getKey()).append(" ");
-
-				int[] values = entry.getValue();
-				for (int value : values) {
-					messageBuilder.append(value).append(" ");
-				}
-
-				// Remove the last space
-				messageBuilder.deleteCharAt(messageBuilder.length() - 1);
-
-				Udp_Mc_Packet mc_packet = new Udp_Mc_Packet("Sync_word", messageBuilder.toString());
-				buffer = mc_packet.toString().getBytes();
-				packet = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
-				socket.send(packet);
-			}
-			
-			Udp_Mc_Packet mc_packet_end = new Udp_Mc_Packet("Sync_word_end", content);
-			buffer = mc_packet_end.toString().getBytes();
-			DatagramPacket packet_end = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
-			socket.send(packet_end);
-
-			String message = "";
-			while(!message.equals("ACK_SYNC")){
-				byte[] buffer_2 = new byte[256];
-				DatagramPacket packet_2 = new DatagramPacket(buffer_2, buffer_2.length);
-				socket.receive(packet_2);
-				message = new String(packet_2.getData(), 0, packet_2.getLength()).trim();
-			};
-
-			socket.close();
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void Update_mem(boolean b, Barrel_I h) throws java.rmi.RemoteException {
-
-		if(b){
-
-			System.out.println("Need to sync!");
-			receive_mc("Sync_url_end", 0);
-			receive_mc("Sync_word_end", 1);
-		}
-
-		Conection.subscribe((Barrel_I) h);
-		System.out.println("Barrel " + id + " up in service!");
-
-	}
-
-	private void receive_mc(String s, int caso) {
-		boolean check = true;
-		try {
-			MulticastSocket socket = new MulticastSocket(PORT); // create socket and bind it
-			socket.setReuseAddress(true);
-			String modifiedAddress = MULTICAST_ADDRESS.substring(0, MULTICAST_ADDRESS.lastIndexOf(".") + 1) + this.id;
-			InetAddress mcastaddr = InetAddress.getByName(modifiedAddress);
-			socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
-
-			while(check){
-				//System.out.println("\n\nLine\n\n");
-				byte[] buffer = new byte[256*2];
-				DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-				socket.receive(packet);
-				String message = new String(packet.getData(), 0, packet.getLength()).trim();
-				//System.out.println(message);
-				if(message.equals(s))
-					check = false;
-				else{
-					
-					if(caso == 1)
-						Update_word_HM(message);
-					else
-						Update_url_HM(message);
-					
-					//System.out.println(message);
-				}
-
-				//System.out.println(message);
-			}
-
-			byte[] buffer = "ACK_SYNC".getBytes();
-			DatagramPacket packet_end = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
-			socket.send(packet_end);
-
-			socket.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void Update_word_HM(String m) {
-		String[] sections = m.split(" ");
-		//System.out.println(m);
-
-		if(sections.length >= 3){
-			String word = sections[1];
-			int[] nums_add = new int[sections.length-2];
-
-			for(int i = 2; i<sections.length; i++){
-				nums_add[i-2] = Integer.parseInt(sections[i]);
-			}
-			words_HM.put(word, nums_add);
-
-		} else {
-			System.err.println("Incorrect input format: " + m);
-		}
-	}
-
-	private void Update_url_HM(String m) {
-		String[] sections = m.split(" ");
-		//System.out.println(m);
-		//System.out.println(sections[2]);
-		
-		if (sections.length >= 3) {
-			String url = sections[1];
-			int count = Integer.parseInt(sections[2]);
-			urls.put(url, count);
-
-		} else {
-			System.err.println("Incorrect input format: " + m);
-		}
-	}
-
 	public void request(String m) throws java.rmi.RemoteException {
 		String[] words = m.split(" ");
 		Urls_list not_found_words = new Urls_list(new ArrayList<>());
@@ -331,6 +123,249 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
     }
 
+	static class Barrel_Send_HMs implements Runnable {
+
+		private final int barrel_id;
+
+		public Barrel_Send_HMs(int barrel_id){
+			super();
+			this.barrel_id = barrel_id;
+		}
+
+		@Override
+		public void run(){
+			try{
+				Mc_HM_Content();
+			} catch(RemoteException e){
+				System.out.println("Erro");
+			}
+
+		}
+
+		public void Mc_HM_Content() throws java.rmi.RemoteException {
+			System.out.println("Synchorizing");
+			
+			send_mc_urls();
+			send_mc_words();
+	
+		}
+	
+		private void send_mc_urls() {
+			String content = "";
+			MulticastSocket socket = null;
+			byte[] buffer;
+			DatagramPacket packet;
+	
+			try{
+	
+				synchronized(urls) {
+			
+					socket = new MulticastSocket(PORT);
+					socket.setReuseAddress(true);
+					String modifiedAddress = MULTICAST_ADDRESS.substring(0, MULTICAST_ADDRESS.lastIndexOf(".") + 1) + this.barrel_id;
+					InetAddress mcastaddr = InetAddress.getByName(modifiedAddress);
+					socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
+		
+		
+					for (Map.Entry<String, Integer> entry : urls.entrySet()) {
+						//System.out.println(entry.getKey() + " " + entry.getValue());
+						Udp_Mc_Packet mc_packet = new Udp_Mc_Packet("Sync_url", entry.getKey() + " " + entry.getValue());
+						buffer = mc_packet.toString().getBytes();
+						packet = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
+						socket.send(packet);
+					}
+					
+					Udp_Mc_Packet mc_packet_end = new Udp_Mc_Packet("Sync_url_end", content);
+					buffer = mc_packet_end.toString().getBytes();
+					DatagramPacket packet_end = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
+					socket.send(packet_end);
+
+					socket.close();
+				}
+	
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	
+		}
+	
+		private void send_mc_words() {
+			String content = "";
+			MulticastSocket socket = null;
+			byte[] buffer;
+			DatagramPacket packet;
+	
+			try{
+	
+				synchronized(words_HM) {	
+		
+					socket = new MulticastSocket(PORT);
+					socket.setReuseAddress(true);
+					String modifiedAddress = MULTICAST_ADDRESS.substring(0, MULTICAST_ADDRESS.lastIndexOf(".") + 1) + this.barrel_id;
+					InetAddress mcastaddr = InetAddress.getByName(modifiedAddress);
+					socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
+		
+		
+					for (Map.Entry<String, int[]> entry : words_HM.entrySet()) {
+						//System.out.println(entry.getKey() + " " + entry.getValue());
+						StringBuilder messageBuilder = new StringBuilder();
+						messageBuilder.append(entry.getKey()).append(" ");
+		
+						int[] values = entry.getValue();
+						for (int value : values) {
+							messageBuilder.append(value).append(" ");
+						}
+		
+						// Remove the last space
+						messageBuilder.deleteCharAt(messageBuilder.length() - 1);
+		
+						Udp_Mc_Packet mc_packet = new Udp_Mc_Packet("Sync_word", messageBuilder.toString());
+						buffer = mc_packet.toString().getBytes();
+						packet = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
+						socket.send(packet);
+					}
+					
+					Udp_Mc_Packet mc_packet_end = new Udp_Mc_Packet("Sync_word_end", content);
+					buffer = mc_packet_end.toString().getBytes();
+					DatagramPacket packet_end = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
+					socket.send(packet_end);
+		
+					socket.close();
+				}
+	
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	static class Barrel_Multicast_Sender implements Runnable {
+		private final int barrel_id;
+
+		public Barrel_Multicast_Sender(int barrel_id){
+			super();
+			this.barrel_id = barrel_id;
+		}
+
+		@Override
+		public void run(){
+			System.out.println("Sender Initialized!");
+			try{
+				MulticastSocket socket = new MulticastSocket(PORT);
+				socket.setReuseAddress(true);
+				String modifiedAddress = MULTICAST_ADDRESS.substring(0, MULTICAST_ADDRESS.lastIndexOf(".") + 1) + this.barrel_id;
+				InetAddress mcastaddr = InetAddress.getByName(modifiedAddress);
+				socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
+
+				while(true){
+					byte[] buffer = new byte[256*2];
+					DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+					socket.receive(packet);
+					String message = new String(packet.getData(), 0, packet.getLength()).trim();
+
+					if(message.equals("Sync")){
+						Barrel_Send_HMs barrel_send_hm = new Barrel_Send_HMs(this.barrel_id);
+						Thread thread_send_hm = new Thread(barrel_send_hm);
+						thread_send_hm.start();
+					}
+				}
+
+			} catch(IOException e){
+				System.out.println("Erro");
+			}
+		}
+	}
+
+	static class Barrel_Multicast_Receiver implements Runnable {
+		private final int barrel_id;
+
+		public Barrel_Multicast_Receiver(int barrel_id){
+			super();
+			this.barrel_id = barrel_id;
+		}
+
+		@Override
+		public void run(){
+			System.out.println("Receiver Initialized!");
+
+			receive_mc();
+
+		}
+
+		private void receive_mc() {
+			boolean check = true;
+			try {
+				MulticastSocket socket = new MulticastSocket(PORT); // create socket and bind it
+				socket.setReuseAddress(true);
+				String modifiedAddress = MULTICAST_ADDRESS.substring(0, MULTICAST_ADDRESS.lastIndexOf(".") + 1) + this.barrel_id;
+				InetAddress mcastaddr = InetAddress.getByName(modifiedAddress);
+				socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
+	
+				while(check){
+
+					byte[] buffer = new byte[256*2];
+					DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+					socket.receive(packet);
+					String message = new String(packet.getData(), 0, packet.getLength()).trim();
+					String sections[] = message.split(" ");
+
+					if(sections[0].equals("Sync_url"))
+						Update_url_HM(message);
+					if(sections[0].equals("Sync_word"))
+						Update_word_HM(message);
+	
+					//System.out.println(message);
+				}
+	
+	
+				socket.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	
+		public void Update_word_HM(String m) {
+			String[] sections = m.split(" ");
+			//System.out.println(m);
+	
+			if(sections.length >= 3){
+				String word = sections[1];
+				int[] nums_add = new int[sections.length-2];
+	
+				for(int i = 2; i<sections.length; i++){
+					nums_add[i-2] = Integer.parseInt(sections[i]);
+				}
+
+				synchronized(words_HM){
+					if (!words_HM.containsKey(word) || !Arrays.equals(words_HM.get(word), nums_add))
+						words_HM.put(word, nums_add);
+				}
+	
+			} else {
+				System.err.println("Incorrect input format: " + m);
+			}
+		}
+	
+		private void Update_url_HM(String m) {
+			String[] sections = m.split(" ");
+			//System.out.println(m);
+			//System.out.println(sections[2]);
+			
+			if (sections.length >= 3) {
+				String url = sections[1];
+				int count = Integer.parseInt(sections[2]);
+
+				synchronized(urls){
+					if(!urls.containsKey(url))
+						urls.put(url, count);
+				}
+	
+			} else {
+				System.err.println("Incorrect input format: " + m);
+			}
+		}
+	}
+
 	static class Barrel_Function implements Runnable {
 		private final int barrel_id;
 		private static int count_urls = 0;
@@ -338,6 +373,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		private IndexBarrels h;
 
 		public Barrel_Function(int barrel_id){
+			super();
 			this.barrel_id = barrel_id;
 		}
 
@@ -349,12 +385,20 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			try{
 				h = new IndexBarrels(barrel_id);
 
+				Barrel_Multicast_Sender barrel_sender = new Barrel_Multicast_Sender(barrel_id);
+				Thread thread_sender = new Thread(barrel_sender);
+				thread_sender.start();
+
+				Barrel_Multicast_Receiver barrel_receiver = new Barrel_Multicast_Receiver(barrel_id);
+				Thread thread_receiver = new Thread(barrel_receiver);
+				thread_receiver.start();
+
 				socket = new MulticastSocket(PORT); // create socket and bind it
 				String modifiedAddress = MULTICAST_ADDRESS.substring(0, MULTICAST_ADDRESS.lastIndexOf(".") + 1) + barrel_id;
 				InetAddress mcastaddr = InetAddress.getByName(modifiedAddress);
 				socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
 
-				Conection.V_I((Barrel_I) h);						//Verifica se é necessário sincronizar com barrels existentes
+				Conection.subscribe((Barrel_I) h);
 
 				Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 					try {
