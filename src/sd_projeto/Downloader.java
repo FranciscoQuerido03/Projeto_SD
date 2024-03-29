@@ -32,7 +32,7 @@ public class Downloader implements Runnable {
                 Aqui nao sei se junte todas as mensagens e depois envio ou se envio uma por uma
              */
             for (Element link : links) {
-                String message = link.attr("abs:href") + " " + link.text();
+                String message = "Data " + link.attr("abs:href") + " " + link.text();
                 byte[] buffer = message.getBytes();
 
                 InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);

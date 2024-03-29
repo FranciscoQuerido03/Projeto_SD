@@ -1,13 +1,9 @@
 package sd_projeto;
 
-import java.net.MalformedURLException;
-import java.nio.charset.StandardCharsets;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.*;
 //import java.net.*;
-
-import sd_projeto.Client_I;
 
 public class GateWay extends UnicastRemoteObject implements Request {
 
@@ -34,6 +30,8 @@ public class GateWay extends UnicastRemoteObject implements Request {
 						barrels[i+j] = barrels[j+i+1];
 					}
 					count--;
+					if(count <= 0)
+						lb = -1;
 					return;
 				}
 			}
@@ -42,9 +40,20 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	}
 
 	public void V_I(Barrel_I barrel) throws RemoteException {
-		if(count > 0)
-			barrel.Update_mem(true, (Barrel_I) barrel);
-		else
+		if(count > 0){
+			new Thread(() -> {
+				try {
+					barrel.Update_mem(true, (Barrel_I) barrel);
+				} catch (RemoteException e){
+					System.out.println("Erro");
+				} 
+			}).start();
+			//System.out.println("Barrel do it");
+			for(int i = 0; i<count; i++){
+				System.out.println("Barrel do it");
+				barrels[i].Mc_HM_Content();		//Manda todos os barrels fazerem multicast para atualizar algum outro barrel
+			}
+		} else
 			barrel.Update_mem(false, (Barrel_I) barrel);
 	}
 
@@ -53,20 +62,22 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	}
 
 	public void send_request(Client_I c, Message m) throws RemoteException {
-        System.out.println("GateWay: " + m.toString() + " " + count);
-		client = c;
-		client_request = m.toString();
+		synchronized(this){
+			System.out.println("GateWay: " + m.toString() + " " + count);
+			client = c;
+			client_request = m.toString();
 
-		if(lb >= 0){
-			if(lb == count)
-				lb = 0;
-			//System.out.println("lb " + lb);
-			//System.out.println(barrels[lb]);
-			barrels[lb].printWordsHM();
-			barrels[lb].request(client_request.toLowerCase());
-			lb++;
-		}else{
-			client.print_err_2_client(new Message(Erro_Indisponibilidade));
+			if(lb >= 0){
+				if(lb >= count)
+					lb = 0;
+				System.out.println("lb " + lb);
+				//System.out.println(barrels[lb]);
+				//barrels[lb].printWordsHM();
+				barrels[lb].request(client_request.toLowerCase());
+				lb++;
+			}else{
+				client.print_err_2_client(new Message(Erro_Indisponibilidade));
+			}
 		}
     }
 
