@@ -34,6 +34,14 @@ public class Client extends UnicastRemoteObject implements Client_I {
 			Scanner scanner = new Scanner(System.in);
 			Request Conection = (Request) Naming.lookup("rmi://localhost:1098/request");
 			while(true){
+				
+				System.out.println("Digite um número:");
+				System.out.println("[1] Enviar uma pesquisa");
+				System.out.println("[2] Enviar um URL");
+
+				int opt = scanner.nextInt();
+				scanner.nextLine();
+
 				String str = scanner.nextLine();
 
 				if(str.equals("\\close")){
@@ -44,7 +52,10 @@ public class Client extends UnicastRemoteObject implements Client_I {
 				
 				Message conteudo = new Message(str);
 
-				Conection.send_request(c, conteudo);
+				if(opt == 1)
+					Conection.send_request(c, conteudo);
+				else
+					Conection.send_url(c, conteudo);
 				//System.out.println("Request sent");
 			}
 
