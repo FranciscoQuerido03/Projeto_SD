@@ -1,11 +1,7 @@
 package sd_projeto;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.MulticastSocket;
-import java.net.NetworkInterface;
+import java.net.*;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.*;
@@ -53,7 +49,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		client.print_err_2_client(s);
 	}
 
-	public void send_request(Client_I c, Message m) throws RemoteException {
+	public void send_request_barrels(Client_I c, Message m) throws RemoteException {
 		synchronized(this){
 			System.out.println("GateWay: " + m.toString() + " " + count);
 			client = c;
@@ -72,6 +68,11 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			}
 		}
     }
+
+	@Override
+	public void send_request_queue(Client_I c, Message m) throws RemoteException {
+		queue.addFirst(m.text);
+	}
 
 	public void subscribe(Barrel_I barrel) throws RemoteException{
 		//System.out.println("Subscri");
