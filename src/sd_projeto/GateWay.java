@@ -9,6 +9,7 @@ import java.net.NetworkInterface;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.*;
+import java.net.MalformedURLException;
 //import java.net.*;
 
 public class GateWay extends UnicastRemoteObject implements Request {
@@ -72,6 +73,10 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			}
 		}
     }
+
+	public void send_url(Client_I c, Message m) throws RemoteException {
+		queue.addFirst(m.text.toString());
+	}
 
 	public void subscribe(Barrel_I barrel) throws RemoteException{
 		//System.out.println("Subscri");

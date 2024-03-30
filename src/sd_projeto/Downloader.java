@@ -55,7 +55,7 @@ public class Downloader extends Thread {
                                 lock.unlock();
 
                                 if (!flag) {
-                                    String message = linkUrl + " " + link.text();
+                                    String message = "Data " + linkUrl + " " + link.text();
                                     byte[] buffer = message.getBytes();
                                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
                                     socket.send(packet);
