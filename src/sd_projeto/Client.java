@@ -1,6 +1,7 @@
 package sd_projeto;
 
 
+import java.util.Arrays;
 import java.util.Scanner;
 import java.net.MalformedURLException;
 import java.rmi.*;
@@ -49,13 +50,27 @@ public class Client extends UnicastRemoteObject implements Client_I {
 					UnicastRemoteObject.unexportObject(c, true);
 					break;
 				}
-				
-				Message conteudo = new Message(str);
 
-				if(opt == 1)
-					Conection.send_request(c, conteudo);
-				else
-					Conection.send_url(c, conteudo);
+				String[] parts = str.split(" ");
+				String data = String.join(" ", Arrays.copyOfRange(parts, 1, parts.length));
+
+				Message conteudo = new Message(data);
+
+
+
+				switch (parts[0]) {
+					case "index":
+						System.out.println("Indexing " + conteudo + "...");
+						Conection.send_request_queue(c, conteudo);
+						break;
+					case "search":
+						System.out.println("Searching " + conteudo + "...");
+						Conection.send_request_barrels(c, conteudo);
+						break;
+					default:
+						System.out.println("Invalid command");
+						break;
+				}
 				//System.out.println("Request sent");
 			}
 
