@@ -1,49 +1,44 @@
 package sd_projeto;
 
 import java.io.IOException;
+//import java.net.*;
 import java.net.*;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.*;
-import java.net.MalformedURLException;
-//import java.net.*;
 
 public class GateWay extends UnicastRemoteObject implements Request {
 
 	private static String Erro_Indisponibilidade = "Service unavailable due to internal problems...";
 	
 	public static String client_request;
-	static Barrel_I barrels[];
+	static Barrel_struct barrels[];
+	static TopSearches top_searches;
 	static int count = 0;
 	static int lb = -1;	//last_barrel ;;; this tech will change eventualy
+	static int NUM_BARRELS = 4;
 	static Client_I client;
 
 	static QueueInterface queue;
 
 	public GateWay() throws RemoteException, MalformedURLException, NotBoundException {
 		super();
-		barrels = new Barrel_I[4];
+		barrels = new Barrel_struct[NUM_BARRELS];
+		Barrel_struct.initialize(barrels, NUM_BARRELS);
+		top_searches = new TopSearches();
 		queue = (QueueInterface) Naming.lookup("rmi://localhost:1097/request_gateway");
 
 	}
 
 	public void barrel_disconnect(Barrel_I barrel) throws RemoteException {
 		synchronized(this){
-			//System.out.println(barrel);
-			for(int i = 0; i<count; i++){
-				//System.out.println(barrels[i]);
-				if(barrels[i].equals(barrel)){
-					for(int j=0; j+i<count; j++){
-						barrels[i+j] = barrels[j+i+1];
-					}
-					count--;
-					if(count <= 0)
-						lb = -1;
-					return;
-				}
-			}
+			count = Barrel_struct.remove_barrel(barrels, barrel, count);
+
+			if(count <= 0)
+				lb = -1;
 		}
-		throw new RemoteException("Barrel Disconnection failed... Barrel not found");
+
+		return;
 	}
 
 	public void err_no_matches(Message s) throws RemoteException {
@@ -54,15 +49,18 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		synchronized(this){
 			System.out.println("GateWay: " + m.toString() + " " + count);
 			client = c;
-			client_request = m.toString();
-
+			client_request = m.toString().trim();
+			top_searches.updateSearchCount(client_request);
 			if(lb >= 0){
 				if(lb >= count)
 					lb = 0;
 				System.out.println("lb " + lb);
 				//System.out.println(barrels[lb]);
-				barrels[lb].printWordsHM();
-				barrels[lb].request(client_request.toLowerCase());
+				//barrels[lb].printWordsHM();
+				long inicio_pedido = System.currentTimeMillis();
+				barrels[lb].barrel.request(client_request.toLowerCase());
+				long fim_pedido = System.currentTimeMillis();
+				barrels[lb].avg_time = (barrels[lb].avg_time + ((fim_pedido - inicio_pedido)/100))/2;
 				lb++;
 			}else{
 				client.print_err_2_client(new Message(Erro_Indisponibilidade));
@@ -72,10 +70,10 @@ public class GateWay extends UnicastRemoteObject implements Request {
 
 	@Override
 	public void send_request_queue(Client_I c, Message m) throws RemoteException {
-		queue.addFirst(m.text);
+		queue.addFirst(m.text.toString());
 	}
 
-	public void subscribe(Barrel_I barrel) throws RemoteException{
+	public void subscribe(Barrel_I barrel, int id) throws RemoteException{
 		//System.out.println("Subscri");
 		//System.out.println(barrel);
 		if(lb < 0)
@@ -96,13 +94,28 @@ public class GateWay extends UnicastRemoteObject implements Request {
 				e.printStackTrace();
 			}
 		}
-		barrels[count] = barrel;
-		count++;
+
+		if(count < NUM_BARRELS){
+			Barrel_struct.add_barrel(barrels, barrel, id, count);
+			count++;
+		}
 	}
 
 	public void answer(Urls_list m) throws RemoteException{
 		System.out.println(m.toString());
 		client.print_on_client(m);
+	}
+
+	public Message adm_painel() throws RemoteException {
+		Message m = new Message("");
+
+		m.addText("Online Servers: " + count + "\n");
+		m.addText("Top 10 most common searches: \n");
+		m.addText(top_searches.getTop10());
+		m.addText("Average response time: \n");
+		m.addText(Barrel_struct.get_avg_times(barrels, count));
+
+		return m;
 	}
 
 	// =======================================================
