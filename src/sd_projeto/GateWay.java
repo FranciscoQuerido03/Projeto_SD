@@ -5,6 +5,7 @@ import java.net.*;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.*;
+import java.net.MalformedURLException;
 //import java.net.*;
 
 public class GateWay extends UnicastRemoteObject implements Request {

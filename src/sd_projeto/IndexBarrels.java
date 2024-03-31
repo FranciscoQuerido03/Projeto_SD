@@ -432,7 +432,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 		private static void DealPacket(DatagramPacket packet) {
 			String message = new String(packet.getData(), 0, packet.getLength());
-			//System.out.println(message);
+			System.out.println(message);
 			String[] words = message.split(" ");
 			
 			if(words[0].equals("Data")){
