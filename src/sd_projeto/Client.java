@@ -19,7 +19,7 @@ public class Client extends UnicastRemoteObject implements Client_I {
 	}
 
 	public void print_err_2_client(Message erro) throws java.rmi.RemoteException{
-		System.out.println(erro);
+		System.out.println(erro.toString());
 	}
 
 	public static void main(String args[]) {
@@ -31,32 +31,24 @@ public class Client extends UnicastRemoteObject implements Client_I {
 
 		try {
 			Client c = new Client();
+			boolean keepItgoin = true;
 
 			Scanner scanner = new Scanner(System.in);
 			Request Conection = (Request) Naming.lookup("rmi://localhost:1098/request");
-			while(true){
+			while(keepItgoin){
 				
-				System.out.println("Digite um número:");
-				System.out.println("[1] Enviar uma pesquisa");
-				System.out.println("[2] Enviar um URL");
-
-				int opt = scanner.nextInt();
-				scanner.nextLine();
+				System.out.println("Syntax:");
+				System.out.println("[1] search <search querry>");
+				System.out.println("[2] index <url>");
+				System.out.println("[3] stats");
+				System.out.println("[4] \\close\n");
 
 				String str = scanner.nextLine();
-
-				if(str.equals("\\close")){
-					scanner.close();
-					UnicastRemoteObject.unexportObject(c, true);
-					break;
-				}
 
 				String[] parts = str.split(" ");
 				String data = String.join(" ", Arrays.copyOfRange(parts, 1, parts.length));
 
 				Message conteudo = new Message(data);
-
-
 
 				switch (parts[0]) {
 					case "index":
@@ -67,11 +59,20 @@ public class Client extends UnicastRemoteObject implements Client_I {
 						System.out.println("Searching " + conteudo + "...");
 						Conection.send_request_barrels(c, conteudo);
 						break;
+					case "stats":
+						Message response = Conection.adm_painel();
+						System.out.println("\n" + response.toString());
+						break;
+					case "\\close":
+						System.out.println("Terminus");
+						scanner.close();
+						UnicastRemoteObject.unexportObject(c, true);
+						keepItgoin = false;
+						break;
 					default:
 						System.out.println("Invalid command");
 						break;
 				}
-				//System.out.println("Request sent");
 			}
 
 		} catch (RemoteException re) {

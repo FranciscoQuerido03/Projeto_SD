@@ -23,7 +23,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	
 
 	public static int numBarrels;
-	public int id;
+	public static int id;
 
 	public IndexBarrels(int num) throws RemoteException {
 		super();
@@ -101,13 +101,14 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			
 			try{
 				numBarrels = Integer.parseInt(args[0]);
+				id = Integer.parseInt(args[1]);
 			} catch (NumberFormatException | ArrayIndexOutOfBoundsException e){
 				System.err.println("Falta o num de barrels cuh");
 				System.exit(1);
 			}
 
 			for(int i = 0; i< numBarrels; i++){
-				Thread barrel = new Thread(new Barrel_Function(i+1));
+				Thread barrel = new Thread(new Barrel_Function(id+i));
 				barrel.start();
 			}
 
@@ -163,8 +164,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			
 					socket = new MulticastSocket(PORT);
 					socket.setReuseAddress(true);
-					String modifiedAddress = MULTICAST_ADDRESS.substring(0, MULTICAST_ADDRESS.lastIndexOf(".") + 1) + this.barrel_id;
-					InetAddress mcastaddr = InetAddress.getByName(modifiedAddress);
+					InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
 					socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
 		
 		
@@ -202,8 +202,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		
 					socket = new MulticastSocket(PORT);
 					socket.setReuseAddress(true);
-					String modifiedAddress = MULTICAST_ADDRESS.substring(0, MULTICAST_ADDRESS.lastIndexOf(".") + 1) + this.barrel_id;
-					InetAddress mcastaddr = InetAddress.getByName(modifiedAddress);
+					InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
 					socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
 		
 		
@@ -254,8 +253,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			try{
 				MulticastSocket socket = new MulticastSocket(PORT);
 				socket.setReuseAddress(true);
-				String modifiedAddress = MULTICAST_ADDRESS.substring(0, MULTICAST_ADDRESS.lastIndexOf(".") + 1) + this.barrel_id;
-				InetAddress mcastaddr = InetAddress.getByName(modifiedAddress);
+				InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
 				socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
 
 				while(true){
@@ -298,8 +296,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			try {
 				MulticastSocket socket = new MulticastSocket(PORT); // create socket and bind it
 				socket.setReuseAddress(true);
-				String modifiedAddress = MULTICAST_ADDRESS.substring(0, MULTICAST_ADDRESS.lastIndexOf(".") + 1) + this.barrel_id;
-				InetAddress mcastaddr = InetAddress.getByName(modifiedAddress);
+				InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
 				socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
 	
 				while(check){
@@ -395,11 +392,10 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				thread_receiver.start();
 
 				socket = new MulticastSocket(PORT); // create socket and bind it
-				String modifiedAddress = MULTICAST_ADDRESS.substring(0, MULTICAST_ADDRESS.lastIndexOf(".") + 1) + barrel_id;
-				InetAddress mcastaddr = InetAddress.getByName(modifiedAddress);
+				InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
 				socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
 
-				Conection.subscribe((Barrel_I) h);
+				Conection.subscribe((Barrel_I) h, barrel_id);
 
 				Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 					try {
