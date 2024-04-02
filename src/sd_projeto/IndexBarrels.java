@@ -1,6 +1,5 @@
 package sd_projeto;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.*;
 import java.rmi.*;
@@ -17,9 +16,9 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	//static HashMap<String, Integer> links = new HashMap<>();
 
 	public static Request Conection;
-	private static String NAMING_URL= "rmi://localhost:1099/request_barrel";
-	private static String MULTICAST_ADDRESS = "224.3.2.1";
-	private static int PORT = 4321;
+	private static String NAMING_URL;
+	private static String MULTICAST_ADDRESS;
+	private static int PORT;
 	
 
 	public static int numBarrels;
@@ -97,6 +96,13 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		//readFile();
 
 		try {
+			File_Infos f = new File_Infos();
+			f.get_data("Barrel");
+
+			NAMING_URL = f.lookup[0];
+			MULTICAST_ADDRESS = f.Address;
+			PORT = f.Port;
+			
 			Conection = (Request) Naming.lookup(NAMING_URL);
 			
 			try{
@@ -479,18 +485,4 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		}
 
 	}
-
-	private static void readFile() {
-		File file = new File("C:\\Users\\luism\\Desktop\\Engenharia Informática\\3 ano 2 semestre\\S fucking D\\Projeto\\Projeto_SD\\SRC\\Index_config.txt");
-		try {
-			java.util.Scanner scanner = new java.util.Scanner(file);
-			NAMING_URL = scanner.nextLine();
-			MULTICAST_ADDRESS = scanner.nextLine();
-			PORT = Integer.parseInt(scanner.nextLine());
-
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
 }

@@ -16,18 +16,20 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	static TopSearches top_searches;
 	static int count = 0;
 	static int lb = -1;	//last_barrel ;;; this tech will change eventualy
-	static int NUM_BARRELS = 4;
+	static int NUM_BARRELS;
 	static Client_I client;
+	private static String MULTICAST_ADDRESS;
+	private static int PORT;
 
 	static QueueInterface queue;
 
-	public GateWay() throws RemoteException, MalformedURLException, NotBoundException {
+	public GateWay(File_Infos f) throws RemoteException, MalformedURLException, NotBoundException {
 		super();
+		NUM_BARRELS = f.NUM_BARRELS;
 		barrels = new Barrel_struct[NUM_BARRELS];
 		Barrel_struct.initialize(barrels, NUM_BARRELS);
 		top_searches = new TopSearches();
-		queue = (QueueInterface) Naming.lookup("rmi://localhost:1097/request_gateway");
-
+		queue = (QueueInterface) Naming.lookup(f.lookup[0]);
 	}
 
 	public void barrel_disconnect(Barrel_I barrel) throws RemoteException {
@@ -58,6 +60,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 				//System.out.println(barrels[lb]);
 				//barrels[lb].printWordsHM();
 				long inicio_pedido = System.currentTimeMillis();
+				System.out.println(barrels[lb].barrel);
 				barrels[lb].barrel.request(client_request.toLowerCase());
 				long fim_pedido = System.currentTimeMillis();
 				barrels[lb].avg_time = (barrels[lb].avg_time + ((fim_pedido - inicio_pedido)/100))/2;
@@ -74,7 +77,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	}
 
 	public void subscribe(Barrel_I barrel, int id) throws RemoteException{
-		//System.out.println("Subscri");
+		System.out.println("Subscri");
 		//System.out.println(barrel);
 		if(lb < 0)
 			lb = 0;
@@ -84,10 +87,10 @@ public class GateWay extends UnicastRemoteObject implements Request {
                 String message = "Sync";
                 byte[] buffer = message.getBytes();
 
-                InetAddress group = InetAddress.getByName("224.3.2.1");
+                InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
 				socket.joinGroup(new InetSocketAddress(group, 0), NetworkInterface.getByIndex(0));
 
-				DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, 4321);
+				DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
 				socket.send(packet);
 
             } catch (IOException e) {
@@ -122,9 +125,16 @@ public class GateWay extends UnicastRemoteObject implements Request {
 
 	public static void main(String args[]) {
 		try {
-			GateWay h = new GateWay();
-			LocateRegistry.createRegistry(1099).rebind("request_barrel", h);
-			LocateRegistry.createRegistry(1098).rebind("request", h);
+			File_Infos f = new File_Infos();
+			f.get_data("GateWay");
+
+			MULTICAST_ADDRESS = f.Address;
+			PORT = f.Port;
+			GateWay h = new GateWay(f);
+			//System.out.println(f.Registo[0]);
+			//System.out.println(f.Registo[1]);
+			LocateRegistry.createRegistry(1099).rebind(f.Registo[0], h);
+			LocateRegistry.createRegistry(1098).rebind(f.Registo[1], h);
 
 			System.out.println("GateWay ready.");
 

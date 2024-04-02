@@ -9,8 +9,14 @@ import java.rmi.server.UnicastRemoteObject;
 
 public class Client extends UnicastRemoteObject implements Client_I {
 
+	private static String NAMING;
+
 	public Client() throws RemoteException {
 		super();
+		File_Infos f = new File_Infos();
+		f.get_data("Client");
+
+		NAMING = f.lookup[0];
 	}
 
 
@@ -34,7 +40,7 @@ public class Client extends UnicastRemoteObject implements Client_I {
 			boolean keepItgoin = true;
 
 			Scanner scanner = new Scanner(System.in);
-			Request Conection = (Request) Naming.lookup("rmi://localhost:1098/request");
+			Request Conection = (Request) Naming.lookup(NAMING);
 			while(keepItgoin){
 				
 				System.out.println("Syntax:");

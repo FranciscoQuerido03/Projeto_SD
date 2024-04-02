@@ -14,10 +14,11 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Downloader extends Thread {
-    private static final String MULTICAST_ADDRESS = "224.3.2.1";
-    private static final int PORT = 4321;
+    private static String MULTICAST_ADDRESS;
+    private static String NAMING;
+    private static int PORT;
     private static InetAddress group;
-    private static final int NUM = 2;
+    private static int NUM;
     private static QueueInterface queue;
     private static BloomFilter<String>  bloomFilter;
     private static final Lock lock = new ReentrantLock();
@@ -84,7 +85,16 @@ public class Downloader extends Thread {
     }
 
     public static void main(String[] args) throws RemoteException, NotBoundException, UnknownHostException, MalformedURLException {
-        queue = (QueueInterface) Naming.lookup("rmi://localhost:1096/request_downloader");
+
+        File_Infos f = new File_Infos();
+        f.get_data("Downloader");
+
+        MULTICAST_ADDRESS = f.Address;
+        PORT = f.Port;
+        NUM = f.NUM_BARRELS;
+        NAMING = f.lookup[0];
+
+        queue = (QueueInterface) Naming.lookup(NAMING);
         group = InetAddress.getByName(MULTICAST_ADDRESS);
 
         bloomFilter = new BloomFilter<>(1328771238,s -> s.hashCode(),s -> s.hashCode() * s.length());
