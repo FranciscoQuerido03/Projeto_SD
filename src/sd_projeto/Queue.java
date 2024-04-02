@@ -1,24 +1,28 @@
 package sd_projeto;
 
-import java.net.MalformedURLException;
-import java.rmi.Naming;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class Queue extends UnicastRemoteObject implements QueueInterface {
 
     private Deque<String> queue;
     private int threadNumber = 0;
+    
+    private static String NAMING_DOWNLOADER;
+    private static String NAMING_GATEWAY;
 
     protected Queue() throws RemoteException {
         queue = new ConcurrentLinkedDeque<>();
+
+        File_Infos f = new File_Infos();
+		f.get_data("Queue");
+
+        NAMING_DOWNLOADER = f.Registo[0];
+        NAMING_GATEWAY = f.Registo[1];
     }
 
     @Override
@@ -94,8 +98,8 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
     public static void main(String[] args) {
         try {
             Queue q = new Queue();
-            LocateRegistry.createRegistry(1096).rebind("request_downloader", q);
-            LocateRegistry.createRegistry(1097).rebind("request_gateway", q);
+            LocateRegistry.createRegistry(1096).rebind(NAMING_DOWNLOADER, q);
+            LocateRegistry.createRegistry(1097).rebind(NAMING_GATEWAY, q);
             System.out.println("Queue ready.");
 
 
