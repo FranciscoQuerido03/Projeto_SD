@@ -28,7 +28,7 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
     @Override
     public synchronized String getFirst() throws RemoteException {
         String url = queue.pollFirst();
-        System.out.println(queue.size());
+        //System.out.println(queue.size());
         return url;
 
     }
@@ -46,7 +46,7 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
     @Override
     public synchronized void print() throws RemoteException {
         for (String item : queue) {
-            System.out.println(item);
+            //System.out.println(item);
         }
     }
 

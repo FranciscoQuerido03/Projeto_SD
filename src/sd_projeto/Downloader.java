@@ -13,6 +13,9 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 
 public class Downloader extends Thread {
@@ -23,6 +26,7 @@ public class Downloader extends Thread {
     private static int NUM;
     private static QueueInterface queue;
     private static BloomFilter<String>  bloomFilter;
+    private static final Object lock = new Object();
 
     private static final List<String> stopWords = Arrays.asList(
             "de", "a", "o", "que", "e", "do", "da", "em", "um", "para", "é", "com", "não", "uma", "os", "no", "se",
@@ -42,7 +46,7 @@ public class Downloader extends Thread {
             "fôssemos", "fossem", "for", "formos", "forem", "serei", "será", "seremos", "serão", "seria", "seríamos", "seriam",
             "tenho", "tem", "temos", "tém", "tinha", "tínhamos", "tinham", "tive", "teve", "tivemos", "tiveram", "tivera",
             "tivéramos", "tenha", "tenhamos", "tenham", "tivesse", "tivéssemos", "tivessem", "tiver", "tivermos", "tiverem",
-            "terei", "terá", "teremos", "terão", "teria", "teríamos", "teriam"
+            "terei", "terá", "teremos", "terão", "teria", "teríamos", "teriam", "?", "!", "-", " "
     );
 
 
@@ -124,7 +128,16 @@ public class Downloader extends Thread {
 
                         // Extrair to_do o texto do HTML
                         String tokens = doc.text();
-                        tokens = removeStopWords(tokens);
+                        Pattern pattern = Pattern.compile("\\b\\p{L}+\\b");
+                        Matcher matcher = pattern.matcher(tokens);
+                        List<String> filteredWords = new ArrayList<>();
+                        while (matcher.find()) {
+                            String word = matcher.group().toLowerCase();
+                            if (!stopWords.contains(word)) {
+                                filteredWords.add(word);
+                            }
+                        }
+                        tokens = String.join(" ", filteredWords);
 
                         // Extrair URLs
                         Elements links = doc.select("a[href]");
@@ -144,14 +157,27 @@ public class Downloader extends Thread {
                         }
 
                         // mensagem multicast
-                        String message = "Data " + "\nURL: " + url + "\nTitle: " + title + "\nPublication Date: " + publicationDate +
-                                "\nText: " + tokens + "\nLinks: " + linksText + "\n";
+                        String message1 = "Data" + "\nURL: " + url + "\nTitle: " + title + "\nPublication Date: " + publicationDate + "\n";
+                        String message2 = "Text: " + tokens + "\n";
+                        String message3 = "Links: " + linksText + "\n";
 
                         // Envie a mensagem multicast
-                        byte[] buffer = message.getBytes();
+                        byte[] buffer = message1.getBytes();
+                        byte[] buffer2 = message2.getBytes();
+                        byte[] buffer3 = message3.getBytes();
                         DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
-                        socket.send(packet);
-                        //System.out.println("Sent message: " + message);
+                        DatagramPacket packet2 = new DatagramPacket(buffer2, buffer2.length, group, PORT);
+                        DatagramPacket packet3 = new DatagramPacket(buffer3, buffer3.length, group, PORT);
+
+                        synchronized(lock){
+                            socket.send(packet);
+                            socket.send(packet2);
+                            socket.send(packet3);
+                        }
+
+                        System.out.println("Sent message: \n" + message1);
+                        System.out.println("Sent message: \n" + message2);
+                        System.out.println("Sent message: \n" + message3);
 
                         url = null;
 
