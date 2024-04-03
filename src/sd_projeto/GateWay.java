@@ -47,7 +47,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		client.print_err_2_client(s);
 	}
 
-	public void send_request_barrels(Client_I c, Message m) throws RemoteException {
+	public void send_request_barrels(Client_I c, Message m, int min) throws RemoteException {
 		synchronized(this){
 			System.out.println("GateWay: " + m.toString() + " " + count);
 			client = c;
@@ -61,7 +61,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 				//barrels[lb].printWordsHM();
 				long inicio_pedido = System.currentTimeMillis();
 				System.out.println(barrels[lb].barrel);
-				barrels[lb].barrel.request(client_request.toLowerCase());
+				barrels[lb].barrel.request(client_request.toLowerCase(), min);
 				long fim_pedido = System.currentTimeMillis();
 				barrels[lb].avg_time = (barrels[lb].avg_time + ((fim_pedido - inicio_pedido)/100))/2;
 				lb++;
