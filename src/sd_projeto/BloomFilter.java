@@ -5,7 +5,6 @@ https://medium.com/javarevisited/java-how-to-implement-a-bloom-filter-and-what-i
  */
 
 package sd_projeto;
-
 import java.util.BitSet;
 import java.util.function.Function;
 
@@ -29,7 +28,6 @@ public class BloomFilter<T> {
     }
 
     public boolean contains(T element) {
-        if (element == null) return false;
         for (Function<T, Integer> hashFunction : hashFunctions) {
             int hash = Math.abs(hashFunction.apply(element) % size);
             if (!bitSet.get(hash)) {
