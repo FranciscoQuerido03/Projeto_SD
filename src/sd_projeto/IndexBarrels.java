@@ -435,10 +435,21 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		private static void DealPacket(DatagramPacket packet) {
 			String message = new String(packet.getData(), 0, packet.getLength());
 			System.out.println(message);
-			String[] words = message.split(" ");
-			
+			String[] words = message.split("\n");
+			System.out.println(words[0]);
 			if(words[0].equals("Data")){
-				String url = words[1];
+				String url = words[1].split(" ")[1];
+				String title = words[2].substring(words[2].indexOf(":") + 2);
+				String publicationDate = words[3].substring(words[3].indexOf(":") + 2);
+				String tokens = words[4].substring(words[4].indexOf(":") + 2);
+				String url_a = words[5].substring(words[5].indexOf(":") + 2);
+
+				System.out.println(url);
+				System.out.println(title);
+				System.out.println(publicationDate);
+				System.out.println(tokens);
+				System.out.println(url_a);
+
 				String[] list;
 				if (words.length > 2 && words[2] != null) {
 					list = words[2].split(" ");

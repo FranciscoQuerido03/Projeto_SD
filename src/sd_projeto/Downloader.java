@@ -157,18 +157,17 @@ public class Downloader extends Thread {
                             }
 
                             // mensagem multicast
-                            String message = "Data " + "\nURL: " + url + "\nTitle: " + title + "\nPublication Date: " + publicationDate +
+                            String message = "Data" + "\nURL: " + url + "\nTitle: " + title + "\nPublication Date: " + publicationDate +
                                     "\nText: " + tokens + "\nLinks: " + linksText;
 
                             // Envie a mensagem multicast
                             byte[] buffer = message.getBytes();
                             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
                             socket.send(packet);
-//                            System.out.println("Sent message: " + message);
+                            System.out.println("\n==== Sent message ===== \n" + message);
+                            System.out.println("\n");
 
-
-
-
+                            
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
