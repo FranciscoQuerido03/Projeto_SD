@@ -3,7 +3,7 @@ package sd_projeto;
 import java.rmi.*;
 
 public interface Request extends Remote {
-    public void send_request_barrels(Client_I c, Message m) throws RemoteException;
+    public void send_request_barrels(Client_I c, Message m, int min) throws RemoteException;
     public void send_request_queue(Client_I c, Message m) throws RemoteException;
     public Message adm_painel() throws RemoteException;
 

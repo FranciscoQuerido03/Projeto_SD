@@ -29,28 +29,38 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		id = num;
 	}
 
-	public void request(String m) throws java.rmi.RemoteException {
+	public void request(String m, int min) throws java.rmi.RemoteException {
 		String[] words = m.split(" ");
 		Urls_list not_found_words = new Urls_list(new ArrayList<>());
 		Urls_list lista_final = new Urls_list(new ArrayList<>());
 		System.out.println("Request received: " + m);
 
+		int count = 0; // contador para controlar o número de URLs adicionadas
+
 		for (String word : words) {
-			//System.out.println(word);
 			int[] nums = words_HM.get(word);
 
-			//System.out.println(lista_final);
 			if(nums != null){
 				for(int num : nums){
 					for (Map.Entry<String, Integer> entry : urls.entrySet()) {
 						if (entry.getValue() == num) {
-							lista_final.addUrl(entry.getKey());
-							break; 
+							count++;
+
+							if (count > min * 10 - 10 && count <= min * 10) {
+								lista_final.addUrl(entry.getKey());
+							}
+							break;
 						}
 					}
 				}
-			}else
+			} else {
 				not_found_words.addUrl(word);
+			}
+
+
+			if (count >= min * 10) {
+				break; // interrompe quando o limite for atingido
+			}
 		}
 
 		if (lista_final.hasValues()) {
@@ -61,6 +71,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			Conection.err_no_matches(new Message("No URLs found for the entire input: " + not_found_words.wordtoString()));
 		}
 	}
+
 
 	/*
 	 * 	<Debug Functions>

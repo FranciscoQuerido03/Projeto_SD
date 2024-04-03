@@ -43,7 +43,7 @@ public class Client extends UnicastRemoteObject implements Client_I {
 			Request Conection = (Request) Naming.lookup(NAMING);
 			while(keepItgoin){
 				
-				System.out.println("Syntax:");
+				System.out.println("\nSelecione um opção:");
 				System.out.println("[1] search <search querry>");
 				System.out.println("[2] index <url>");
 				System.out.println("[3] stats");
@@ -57,19 +57,20 @@ public class Client extends UnicastRemoteObject implements Client_I {
 				Message conteudo = new Message(data);
 
 				switch (parts[0]) {
-					case "index":
-						System.out.println("Indexing " + conteudo + "...");
+					case "1":
+						System.out.println("\nSearching " + conteudo + "...\n");
+						searchBarrels(c, Conection, conteudo);
+						break;
+					case "2":
+						System.out.println("\nIndexing " + conteudo + "...\n");
 						Conection.send_request_queue(c, conteudo);
+						//Conection.send_request_barrels(c, conteudo);
 						break;
-					case "search":
-						System.out.println("Searching " + conteudo + "...");
-						Conection.send_request_barrels(c, conteudo);
-						break;
-					case "stats":
+					case "3":
 						Message response = Conection.adm_painel();
 						System.out.println("\n" + response.toString());
 						break;
-					case "\\close":
+					case "4":
 						System.out.println("Terminus");
 						scanner.close();
 						UnicastRemoteObject.unexportObject(c, true);
@@ -89,6 +90,36 @@ public class Client extends UnicastRemoteObject implements Client_I {
 			System.out.println("NotBoundException in GateWay.main: " + e);
 		}
 
+	}
+
+	private static void searchBarrels(Client c, Request conection, Message conteudo) {
+		try {
+			boolean end = false;
+			int i = 0;
+			Scanner scanner = new Scanner(System.in);
+			while (!end) {
+				conection.send_request_barrels(c, conteudo, i);
+				System.out.println("[1] Previous 10\t[2] Next 10\t[3] End\n");
+				String str = scanner.nextLine();
+				switch (str) {
+					case "1":
+						i -= 1;
+						break;
+					case "2":
+						i += 1;
+						break;
+					case "3":
+						end = true;
+						break;
+					default:
+						System.out.println("\nInvalid command\nTry again\n");
+						break;
+				}
+			}
+
+		} catch (RemoteException e) {
+			System.out.println("RemoteException in GateWay.searchBarrels: " + e);
+		}
 	}
 
 }
