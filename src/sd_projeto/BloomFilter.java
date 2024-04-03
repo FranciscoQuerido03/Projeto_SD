@@ -1,9 +1,3 @@
-/*
-Codigo da autoria de:
-Oliver Foster
-https://medium.com/javarevisited/java-how-to-implement-a-bloom-filter-and-what-is-it-used-for-070632cbe7a9
- */
-
 package sd_projeto;
 import java.util.BitSet;
 import java.util.function.Function;
@@ -20,14 +14,14 @@ public class BloomFilter<T> {
         this.hashFunctions = hashFunctions;
     }
 
-    public void add(T element) {
+    public synchronized void add(T element) {
         for (Function<T, Integer> hashFunction : hashFunctions) {
             int hash = Math.abs(hashFunction.apply(element) % size);
             bitSet.set(hash, true);
         }
     }
 
-    public boolean contains(T element) {
+    public synchronized boolean contains(T element) {
         for (Function<T, Integer> hashFunction : hashFunctions) {
             int hash = Math.abs(hashFunction.apply(element) % size);
             if (!bitSet.get(hash)) {

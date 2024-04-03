@@ -13,9 +13,7 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.StringTokenizer;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+
 
 public class Downloader extends Thread {
     private static String MULTICAST_ADDRESS;
@@ -25,7 +23,6 @@ public class Downloader extends Thread {
     private static int NUM;
     private static QueueInterface queue;
     private static BloomFilter<String>  bloomFilter;
-    private static final Lock lock = new ReentrantLock();
 
     private static final List<String> stopWords = Arrays.asList(
             "de", "a", "o", "que", "e", "do", "da", "em", "um", "para", "é", "com", "não", "uma", "os", "no", "se",
@@ -55,15 +52,15 @@ public class Downloader extends Thread {
     }
 
     // Função para remover as stopwords de um texto
-    private static StringTokenizer removeStopWords(StringTokenizer tokens) {
-        StringBuilder filteredText = new StringBuilder();
-        while (tokens.hasMoreTokens()) {
-            String token = tokens.nextToken().toLowerCase();
-            if (!stopWords.contains(token)) {
-                filteredText.append(token).append(" ");
+    private static String removeStopWords(String text) {
+        String[] words = text.split("\\s+");
+        List<String> filteredWords = new ArrayList<>();
+        for (String word : words) {
+            if (!stopWords.contains(word.toLowerCase())) {
+                filteredWords.add(word);
             }
         }
-        return new StringTokenizer(filteredText.toString());
+        return String.join(" ", filteredWords);
     }
 
 
@@ -87,6 +84,7 @@ public class Downloader extends Thread {
          fonte:https://krisives.github.io/bloom-calculator/
          */
         bloomFilter = new BloomFilter<>(1917011676, s -> s.hashCode(), s -> s.hashCode() * s.length());
+        //bloomFilter.add("http://www.google.com");
 
         for (int i = 0; i < NUM; i++) {
             new Downloader(i);
@@ -111,71 +109,60 @@ public class Downloader extends Thread {
         try {
             while (true) {
                 url = queue.getFirst();
-                if (url != null && correctURL(url)) {
+                if (url != null && correctURL(url) && !bloomFilter.contains(url)) {
+                    bloomFilter.add(url);
 
-                    lock.lock();
-                    flag = bloomFilter.contains(url);
-                    lock.unlock();
+                    try {
+                        MulticastSocket socket = new MulticastSocket();
+                        Document doc = Jsoup.connect(url).get();
 
-                    if (!flag) {
+                        // Extrair título do documento
+                        String title = doc.title();
 
-                        // Adicionar URL ao BloomFilter
-                        lock.lock();
-                        bloomFilter.add(url);
-                        lock.unlock();
+                        // Extrair data de publicação, se disponível
+                        String publicationDate = doc.select("date").text();
 
-                        try {
-                            MulticastSocket socket = new MulticastSocket();
-                            Document doc = Jsoup.connect(url).get();
+                        // Extrair to_do o texto do HTML
+                        String tokens = doc.text();
+                        tokens = removeStopWords(tokens);
 
-                            // Extrair título do documento
-                            String title = doc.title();
+                        // Extrair URLs
+                        Elements links = doc.select("a[href]");
+                        StringBuilder linksText = new StringBuilder();
 
-                            // Extrair data de publicação, se disponível
-                            String publicationDate = doc.select("date").text();
+                        for (Element link : links) {
+                            String linkUrl = link.attr("abs:href");
+                            if (correctURL(linkUrl)) {
+                                linksText.append(linkUrl).append(" "); // todos os links so numa string
 
-                            // Extrair to_do o texto do HTML
-                            StringTokenizer tokens = new StringTokenizer(doc.text());
-                            tokens = removeStopWords(tokens);
+                                flag = bloomFilter.contains(linkUrl);
 
-                            // Extrair URLs
-                            Elements links = doc.select("a[href]");
-                            StringBuilder linksText = new StringBuilder();
-
-                            for (Element link : links) {
-                                String linkUrl = link.attr("abs:href");
-                                if (correctURL(linkUrl)) {
-                                    linksText.append(linkUrl).append(" "); // todos os links so numa string
-
-                                    lock.lock();
-                                    flag = bloomFilter.contains(linkUrl);
-                                    lock.unlock();
-
-                                    if (!flag)
-                                        queue.addLast(linkUrl); // adicionar os links na queue
-                                }
+                                if (!flag)
+                                    //System.out.println("Added to queue: " + linkUrl);
+                                    queue.addLast(linkUrl); // adicionar os links na queue
                             }
-
-                            // mensagem multicast
-                            String message = "Data " + "\nURL: " + url + "\nTitle: " + title + "\nPublication Date: " + publicationDate +
-                                    "\nText: " + tokens + "\nLinks: " + linksText;
-
-                            // Envie a mensagem multicast
-                            byte[] buffer = message.getBytes();
-                            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
-                            socket.send(packet);
-//                            System.out.println("Sent message: " + message);
-
-
-
-
-                        } catch (IOException e) {
-                            e.printStackTrace();
                         }
 
-                    } else {
-                        System.out.println("URL already visited: " + url);
+                        // mensagem multicast
+                        String message = "Data " + "\nURL: " + url + "\nTitle: " + title + "\nPublication Date: " + publicationDate +
+                                "\nText: " + tokens + "\nLinks: " + linksText + "\n";
+
+                        // Envie a mensagem multicast
+                        byte[] buffer = message.getBytes();
+                        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
+                        socket.send(packet);
+                        //System.out.println("Sent message: " + message);
+
+                        url = null;
+
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
+
+                } else {
+//                    if (url != null)
+//                        System.out.println("Thread("+this.threadId()+")"+" URL already visited: " + url);
                 }
             }
         } catch (RemoteException e) {
@@ -186,16 +173,25 @@ public class Downloader extends Thread {
     private boolean correctURL(String url) {
         try {
             URL testURL = new URL(url);
-            URLConnection conn = testURL.openConnection();
-            conn.connect();
-            return true;
-        } catch (MalformedURLException e) {
-            System.out.println("Malformed URL: " + url);
-        } catch (IOException e) {
-            System.out.println("Cannot establish connection: " + url);
+            URLConnection connection = testURL.openConnection();
+
+            // Verificar se a conexão é do tipo HttpURLConnection
+            if (connection instanceof HttpURLConnection) {
+                HttpURLConnection conn = (HttpURLConnection) connection;
+                conn.setRequestMethod("HEAD"); // Apenas cabeçalhos, sem baixar o conteúdo
+                int responseCode = conn.getResponseCode();
+                return (responseCode == HttpURLConnection.HTTP_OK);
+            } else {
+                // Tratar casos em que a URL não é uma conexão HTTP
+                return false;
+            }
+        } catch (IOException ignored) {
+            // Tratar exceções de E/S, como URL malformada ou problemas de conexão
+            return false;
         }
-        return false;
     }
+
+
 
     private static void print(String msg, Object... args) {
         System.out.printf((msg) + "%n", args);
