@@ -62,9 +62,10 @@ public class Client extends UnicastRemoteObject implements Client_I {
 						searchBarrels(c, Conection, conteudo);
 						break;
 					case "2":
-						System.out.println("\nIndexing " + conteudo + "...\n");
-						Conection.send_request_queue(c, conteudo);
-						//Conection.send_request_barrels(c, conteudo);
+						if(checkUrl(conteudo)) {
+							System.out.println("\nIndexing " + conteudo + "...\n");
+							Conection.send_request_queue(c, conteudo);
+						}
 						break;
 					case "3":
 						Message response = Conection.adm_painel();
@@ -90,6 +91,14 @@ public class Client extends UnicastRemoteObject implements Client_I {
 			System.out.println("NotBoundException in GateWay.main: " + e);
 		}
 
+	}
+
+	private static boolean checkUrl(Message conteudo) {
+		if (!conteudo.toString().startsWith("http://") && !conteudo.toString().startsWith("https://")) {
+			System.out.println("\nInvalid URL\nURL must start with 'http://' or 'https://'\nTry again\n");
+			return false;
+		}
+		return true;
 	}
 
 	private static void searchBarrels(Client c, Request conection, Message conteudo) {

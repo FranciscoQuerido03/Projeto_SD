@@ -42,7 +42,8 @@ public class Downloader extends Thread {
             "fôssemos", "fossem", "for", "formos", "forem", "serei", "será", "seremos", "serão", "seria", "seríamos", "seriam",
             "tenho", "tem", "temos", "tém", "tinha", "tínhamos", "tinham", "tive", "teve", "tivemos", "tiveram", "tivera",
             "tivéramos", "tenha", "tenhamos", "tenham", "tivesse", "tivéssemos", "tivessem", "tiver", "tivermos", "tiverem",
-            "terei", "terá", "teremos", "terão", "teria", "teríamos", "teriam"
+            "terei", "terá", "teremos", "terão", "teria", "teríamos", "teriam", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")",
+            "-","_","=","+","[","]","{","}",";",":","'","\"","\\","|",",","<",".",">","/","?","`","~"
     );
 
 
@@ -135,10 +136,7 @@ public class Downloader extends Thread {
                             if (correctURL(linkUrl)) {
                                 linksText.append(linkUrl).append(" "); // todos os links so numa string
 
-                                flag = bloomFilter.contains(linkUrl);
-
-                                if (!flag)
-                                    //System.out.println("Added to queue: " + linkUrl);
+                                if (!bloomFilter.contains(linkUrl))
                                     queue.addLast(linkUrl); // adicionar os links na queue
                             }
                         }
