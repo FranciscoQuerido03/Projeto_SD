@@ -17,6 +17,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.lang.Integer.parseInt;
+
 
 public class Downloader extends Thread {
     private static String MULTICAST_ADDRESS;
@@ -25,7 +27,6 @@ public class Downloader extends Thread {
     private static InetAddress group;
     private static int NUM;
     private static QueueInterface queue;
-    private static BloomFilter<String>  bloomFilter;
     private static final Object lock = new Object();
 
     private static final List<String> stopWords = Arrays.asList(
@@ -70,6 +71,13 @@ public class Downloader extends Thread {
 
     public static void main(String[] args) throws RemoteException, NotBoundException, UnknownHostException, MalformedURLException {
 
+        if (args.length != 1) {
+            System.out.println("Usage: java Downloader <id>");
+            System.exit(1);
+        }
+
+        int id = parseInt(args[0]);
+
         File_Infos f = new File_Infos();
         f.get_data("Downloader");
 
@@ -81,19 +89,12 @@ public class Downloader extends Thread {
         queue = (QueueInterface) Naming.lookup(NAMING);
         group = InetAddress.getByName(MULTICAST_ADDRESS);
 
-        /*
-         Inicializar o BloomFilter
-         100 000 000 elementos esperados
-         0.01% probabilidade de falsos positivos
-         fonte:https://krisives.github.io/bloom-calculator/
-         */
-        bloomFilter = new BloomFilter<>(1917011676, s -> s.hashCode(), s -> s.hashCode() * s.length());
-        //bloomFilter.add("http://www.google.com");
 
-        for (int i = 0; i < NUM; i++) {
-            new Downloader(i);
-            System.out.println("Downloader " + i + " ready.");
-        }
+
+
+        new Downloader(id);
+        System.out.println("Downloader " + id + " ready.");
+
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             for (Thread t : Thread.getAllStackTraces().keySet()) {
@@ -113,8 +114,7 @@ public class Downloader extends Thread {
         try {
             while (true) {
                 url = queue.getFirst();
-                if (url != null && correctURL(url) && !bloomFilter.contains(url)) {
-                    bloomFilter.add(url);
+                if (url != null && correctURL(url)) {
 
                     try {
                         MulticastSocket socket = new MulticastSocket();
@@ -148,11 +148,7 @@ public class Downloader extends Thread {
                             if (correctURL(linkUrl)) {
                                 linksText.append(linkUrl).append(" "); // todos os links so numa string
 
-                                flag = bloomFilter.contains(linkUrl);
-
-                                if (!flag)
-                                    //System.out.println("Added to queue: " + linkUrl);
-                                    queue.addLast(linkUrl); // adicionar os links na queue
+                                queue.addLast(linkUrl); // adicionar os links na queue
                             }
                         }
 
@@ -202,8 +198,7 @@ public class Downloader extends Thread {
             URLConnection connection = testURL.openConnection();
 
             // Verificar se a conexão é do tipo HttpURLConnection
-            if (connection instanceof HttpURLConnection) {
-                HttpURLConnection conn = (HttpURLConnection) connection;
+            if (connection instanceof HttpURLConnection conn) {
                 conn.setRequestMethod("HEAD"); // Apenas cabeçalhos, sem baixar o conteúdo
                 int responseCode = conn.getResponseCode();
                 return (responseCode == HttpURLConnection.HTTP_OK);
