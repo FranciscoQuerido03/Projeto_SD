@@ -32,41 +32,43 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	public void request(String m, int min) throws java.rmi.RemoteException {
 		String[] words = m.split(" ");
 		Urls_list not_found_words = new Urls_list(new ArrayList<>());
-		Urls_list lista_final = new Urls_list(new ArrayList<>());
+		ArrayList<URL_Content> resultado = new ArrayList<>();
 		System.out.println("Request received: " + m);
 
 		int count = 0; // contador para controlar o número de URLs adicionadas
 
-		for (String word : words) {
-			int[] nums = words_HM.get(word);
+		//printWordsHM();
 
-			if(nums != null){
-				for(int num : nums){
-					for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
-						if (entry.getValue() == num) {
-							count++;
+		for (String word : words) {								// Cada palavra das palavras de pesquisa
+			int[] nums = words_HM.get(word);					// Buscar array de ints que correspondem aos urls que a palavra esta associada
 
-							if (count > min * 10 - 10 && count <= min * 10) {
-								lista_final.addUrl(entry.getKey().url);
+			if(nums != null){									// Nums?
+				for(int num : nums){							// Para cada num
+					for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {	
+						if (entry.getValue() == num) {			// Se o value corresponder entao este url ta associado a palavra
+
+							for (Map.Entry<Integer, int[]> entry_l : links.entrySet()) {	// Ver quantos url apontam para este url
+								if(entry_l.getKey() == num){
+									entry.getKey().priority = entry_l.getValue().length;	
+									resultado.add(entry.getKey());
+									break;
+								}
 							}
-							break;
+
+                        	break;
 						}
 					}
 				}
 			} else {
 				not_found_words.addUrl(word);
 			}
-
-
-			if (count >= min * 10) {
-				break; // interrompe quando o limite for atingido
-			}
 		}
+		
 
-		if (lista_final.hasValues()) {
+		if (!resultado.isEmpty()) {
 			if(not_found_words.hasValues())
 				Conection.err_no_matches(new Message("No URLs found for: " + not_found_words.wordtoString()));
-			Conection.answer(lista_final);
+			Conection.answer(resultado);
 		} else {
 			Conection.err_no_matches(new Message("No URLs found for the entire input: " + not_found_words.wordtoString()));
 		}
@@ -462,7 +464,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		private static void DealPacket(DatagramPacket packet) {
 			String message = new String(packet.getData(), 0, packet.getLength());
 			
-			System.out.println(message);
+			//System.out.println(message);
 			String[] words = message.split("\n");
 
 			if(words[0].equals("Data")){

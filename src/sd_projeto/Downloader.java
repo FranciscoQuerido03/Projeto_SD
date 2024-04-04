@@ -117,6 +117,7 @@ public class Downloader extends Thread {
                     bloomFilter.add(url);
 
                     try {
+                        System.out.println("Processing URL...");
                         MulticastSocket socket = new MulticastSocket();
                         Document doc = Jsoup.connect(url).get();
 
@@ -175,9 +176,9 @@ public class Downloader extends Thread {
                             socket.send(packet3);
                         }
 
-                        System.out.println("Sent message: \n" + message1);
-                        System.out.println("Sent message: \n" + message2);
-                        System.out.println("Sent message: \n" + message3);
+                        //System.out.println("Sent message: \n" + message1);
+                        //System.out.println("Sent message: \n" + message2);
+                        //System.out.println("Sent message: \n" + message3);
 
                         url = null;
 

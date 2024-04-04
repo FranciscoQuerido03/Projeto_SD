@@ -6,6 +6,7 @@ import java.net.*;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.*;
+import java.util.ArrayList;
 
 public class GateWay extends UnicastRemoteObject implements Request {
 
@@ -56,11 +57,10 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			if(lb >= 0){
 				if(lb >= count)
 					lb = 0;
-				System.out.println("lb " + lb);
-				//System.out.println(barrels[lb]);
+				//System.out.println("lb " + lb);
+				//System.out.println(barrels[lb].barrel);
 				//barrels[lb].printWordsHM();
 				long inicio_pedido = System.currentTimeMillis();
-				System.out.println(barrels[lb].barrel);
 				barrels[lb].barrel.request(client_request.toLowerCase(), min);
 				long fim_pedido = System.currentTimeMillis();
 				barrels[lb].avg_time = (barrels[lb].avg_time + ((fim_pedido - inicio_pedido)/100))/2;
@@ -104,8 +104,8 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		}
 	}
 
-	public void answer(Urls_list m) throws RemoteException{
-		System.out.println(m.toString());
+	public void answer(ArrayList<URL_Content> m) throws RemoteException{
+		//System.out.println(m.toString());
 		client.print_on_client(m);
 	}
 

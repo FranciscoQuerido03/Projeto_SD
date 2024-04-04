@@ -1,6 +1,7 @@
 package sd_projeto;
 
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.net.MalformedURLException;
@@ -20,8 +21,12 @@ public class Client extends UnicastRemoteObject implements Client_I {
 	}
 
 
-	public void print_on_client(Urls_list list) throws java.rmi.RemoteException {
-		System.out.println(list.toString());
+	public void print_on_client(ArrayList<URL_Content> list) throws java.rmi.RemoteException {
+
+		for (URL_Content urlContent : list) {
+			System.out.println(urlContent.toString()); 
+		}
+			
 	}
 
 	public void print_err_2_client(Message erro) throws java.rmi.RemoteException{
