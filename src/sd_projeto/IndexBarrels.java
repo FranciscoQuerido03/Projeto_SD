@@ -495,16 +495,6 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
 				socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
 
-				try {
-					Thread.sleep(7000); // Aguarda por 5 segundos
-				} catch (InterruptedException e) {
-					// Tratamento de exceção, se necessário
-				}
-
-				printUrls();
-				printWordsHM();
-				printLinks();
-
 				Conection.subscribe((Barrel_I) h, barrel_id);
 
 				Runtime.getRuntime().addShutdownHook(new Thread(() -> {
