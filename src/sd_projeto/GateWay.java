@@ -1,10 +1,12 @@
 package sd_projeto;
 
+import java.awt.*;
 import java.io.IOException;
 import java.net.*;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.*;
+import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -26,6 +28,8 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	private static int PORT;
 	private static QueueInterface queue;
 	private static ReentrantLock lock = new ReentrantLock();
+
+	private static HashMap<Client_I, Urls_list> results10 = new HashMap<Client_I, Urls_list>();
 
 	/**
 	 * Construtor para criar o Gateway.
@@ -72,10 +76,9 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 * Método para enviar solicitações aos barrels remotos.
 	 * @param c O cliente.
 	 * @param m A mensagem com a solicitação.
-	 * @param min Número que define o intervalo de resultados a serem retornados.
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
-	public void send_request_barrels(Client_I c, Message m, int min) throws RemoteException {
+	public void send_request_barrels(Client_I c, Message m) throws RemoteException {
 		lock.lock();
 		try {
 			System.out.println("GateWay: " + m.toString() + " " + count);
@@ -87,7 +90,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 					lb = 0;
 				System.out.println("lb " + lb);
 				long inicio_pedido = System.currentTimeMillis();
-				barrels[lb].barrel.request(client_request.toLowerCase(), min);
+				barrels[lb].barrel.request(client_request.toLowerCase());
 				long fim_pedido = System.currentTimeMillis();
 				barrels[lb].avg_time = (barrels[lb].avg_time + ((fim_pedido - inicio_pedido) / 100)) / 2;
 				lb++;
@@ -96,6 +99,17 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			}
 		} finally {
 			lock.unlock();
+		}
+	}
+
+	public void request10(Client_I c, Message m) throws RemoteException {
+		int  i = 0;
+		Urls_list result = barrels[i].barrel.request10(m.text);
+		results10.put(c, result);
+		if (results10.containsKey(c)) {
+			client.print_on_client(results10.get(c));
+		} else {
+			client.print_err_2_client(new Message("No more results available"));
 		}
 	}
 

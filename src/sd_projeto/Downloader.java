@@ -64,31 +64,6 @@ public class Downloader extends Thread {
     }
 
 
-    public static void main(String[] args) throws RemoteException, NotBoundException, UnknownHostException, MalformedURLException {
-
-        File_Infos f = new File_Infos();
-        f.get_data("Downloader");
-
-        MULTICAST_ADDRESS = f.Address;
-        PORT = f.Port;
-        NUM = f.NUM_BARRELS;
-        NAMING = f.lookup[0];
-
-        queue = (QueueInterface) Naming.lookup(NAMING);
-        group = InetAddress.getByName(MULTICAST_ADDRESS);
-
-        new Downloader();
-        System.out.println("Downloader ready.");
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            for (Thread t : Thread.getAllStackTraces().keySet()) {
-                if (t.getName().startsWith("Downloader")) {
-                    System.out.println(t + "Ending");
-                    t.interrupt();
-                }
-            }
-        }));
-    }
 
     @Override
     public void run() {
@@ -181,10 +156,30 @@ public class Downloader extends Thread {
     private boolean correctURL(String url) {
         return url.startsWith("http://") || url.startsWith("https://");
     }
+    public static void main(String[] args) throws RemoteException, NotBoundException, UnknownHostException, MalformedURLException {
 
+        File_Infos f = new File_Infos();
+        f.get_data("Downloader");
 
+        MULTICAST_ADDRESS = f.Address;
+        PORT = f.Port;
+        NUM = f.NUM_BARRELS;
+        NAMING = f.lookup[0];
 
-    private static void print(String msg, Object... args) {
-        System.out.printf((msg) + "%n", args);
+        queue = (QueueInterface) Naming.lookup(NAMING);
+        group = InetAddress.getByName(MULTICAST_ADDRESS);
+
+        new Downloader();
+        System.out.println("Downloader ready.");
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            for (Thread t : Thread.getAllStackTraces().keySet()) {
+                if (t.getName().startsWith("Downloader")) {
+                    System.out.println(t + "Ending");
+                    t.interrupt();
+                }
+            }
+        }));
     }
+
 }

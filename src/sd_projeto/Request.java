@@ -11,10 +11,9 @@ public interface Request extends Remote {
      * Método que solicita a um barrel a pesquisa de um determinado conjunto de palarvas.
      * @param c O cliente que fez a solicitação.
      * @param m A mensagem com a solicitação.
-     * @param min Número que define o intervalo de resultados a serem retornados.
      * @throws RemoteException se ocorrer um erro durante a comunicação remota.
      */
-    public void send_request_barrels(Client_I c, Message m, int min) throws RemoteException;
+    public void send_request_barrels(Client_I c, Message m) throws RemoteException;
 
     /**
      * Método que solicita a adição de um URL à fila de processamento.

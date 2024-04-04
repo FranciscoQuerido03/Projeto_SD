@@ -135,7 +135,7 @@ public class Client extends UnicastRemoteObject implements Client_I {
 			int i = 0;
 			Scanner scanner = new Scanner(System.in);
 			while (!end) {
-				conection.send_request_barrels(c, conteudo, i);
+				conection.send_request_barrels(c, conteudo);
 				System.out.println("[1] Anteriores 10\t[2] Próximos 10\t[3] Fim\n");
 				String str = scanner.nextLine();
 				switch (str) {
