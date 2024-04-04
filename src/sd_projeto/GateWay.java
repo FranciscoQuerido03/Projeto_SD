@@ -119,19 +119,31 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 * @param id O ID do barril.
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
-	public void subscribe(Barrel_I barrel, int id) throws RemoteException {
-		lock.lock();
-		try {
-			if (lb < 0)
-				lb = 0;
-			if (count > 0) {
-				if (count < NUM_BARRELS) {
-					Barrel_struct.add_barrel(barrels, barrel, id, count);
-					count++;
-				}
+	public void subscribe(Barrel_I barrel, int id) throws RemoteException{
+		System.out.println("Subscri");
+		//System.out.println(barrel);
+		if(lb < 0)
+			lb = 0;
+		if(count > 0){
+			System.out.println("Sync Needed Cuh");
+			try (MulticastSocket socket = new MulticastSocket(4321)) {
+                String message = "Sync";
+                byte[] buffer = message.getBytes();
+
+                InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
+				socket.joinGroup(new InetSocketAddress(group, 0), NetworkInterface.getByIndex(0));
+
+				DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
+				socket.send(packet);
+
+            } catch (IOException e) {
+				e.printStackTrace();
 			}
-		} finally {
-			lock.unlock();
+		}
+
+		if(count < NUM_BARRELS){
+			Barrel_struct.add_barrel(barrels, barrel, id, count);
+			count++;
 		}
 	}
 
