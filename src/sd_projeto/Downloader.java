@@ -13,11 +13,6 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static java.lang.Integer.parseInt;
 
 
 public class Downloader extends Thread {
@@ -169,13 +164,11 @@ public class Downloader extends Thread {
                         socket.send(packet4);
 
 
- //                       System.out.println("Sent message: \n" + endMessage);
+                       System.out.println("Sent message");
 
                         url = null;
 
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    } catch (IOException ignored) {}
                 } else {
                     sleep(1000);
                 }
@@ -186,23 +179,7 @@ public class Downloader extends Thread {
     }
 
     private boolean correctURL(String url) {
-        try {
-            URL testURL = new URL(url);
-            URLConnection connection = testURL.openConnection();
-
-            // Verificar se a conexão é do tipo HttpURLConnection
-            if (connection instanceof HttpURLConnection conn) {
-                conn.setRequestMethod("HEAD"); // Apenas cabeçalhos, sem baixar o conteúdo
-                int responseCode = conn.getResponseCode();
-                return (responseCode == HttpURLConnection.HTTP_OK);
-            } else {
-                // Tratar casos em que a URL não é uma conexão HTTP
-                return false;
-            }
-        } catch (IOException ignored) {
-            // Tratar exceções de E/S, como URL malformada ou problemas de conexão
-            return false;
-        }
+        return url.startsWith("http://") || url.startsWith("https://");
     }
 
 
