@@ -7,108 +7,85 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
+/**
+ * Implementação de uma fila thread-safe remota em Java usando RMI.
+ * Esta fila permite adicionar e remover elementos de forma remota.
+ */
 public class Queue extends UnicastRemoteObject implements QueueInterface {
 
     private Deque<String> queue;
     private int threadNumber = 0;
-    
+
     private static String NAMING_DOWNLOADER;
     private static String NAMING_GATEWAY;
 
+    /**
+     * Construtor da fila.
+     * Inicializa a fila e carrega as informações de registo.
+     * @throws RemoteException se ocorrer um erro ao criar o objeto remoto.
+     */
     protected Queue() throws RemoteException {
         queue = new ConcurrentLinkedDeque<>();
 
         File_Infos f = new File_Infos();
-		f.get_data("Queue");
+        f.get_data("Queue");
 
         NAMING_DOWNLOADER = f.Registo[0];
         NAMING_GATEWAY = f.Registo[1];
     }
 
+    /**
+     * Obtém o primeiro elemento da fila removendo-o.
+     * @return O primeiro elemento da fila, ou null se a fila estiver vazia.
+     * @throws RemoteException se ocorrer um erro durante a comunicação remota.
+     */
     @Override
     public synchronized String getFirst() throws RemoteException {
-        String url = queue.pollFirst();
-        //System.out.println(queue.size());
-        return url;
-
+        return queue.pollFirst();
     }
 
-    @Override
-    public synchronized boolean isEmpty() throws RemoteException {
-        return queue.isEmpty();
-    }
-
-    @Override
-    public synchronized int size() throws RemoteException {
-        return queue.size();
-    }
-
-    @Override
-    public synchronized void print() throws RemoteException {
-        for (String item : queue) {
-            //System.out.println(item);
-        }
-    }
-
+    /**
+     * Obtém todos os elementos da fila.
+     * @return Um ArrayList com todos os elementos da fila.
+     * @throws RemoteException se ocorrer um erro durante a comunicação remota.
+     */
     @Override
     public synchronized ArrayList<String> getAll() throws RemoteException {
         return new ArrayList<>(queue);
     }
 
+    /**
+     * Adiciona um elemento no início da fila.
+     * @param url O URL a ser adicionado.
+     * @throws RemoteException se ocorrer um erro durante a comunicação remota.
+     */
     @Override
     public synchronized void addFirst(String url) throws RemoteException {
         queue.addFirst(url);
-        System.out.println("Added: " + url + " first");
-        //checkNadd();
     }
 
-
+    /**
+     * Adiciona um elemento no fim da fila.
+     * @param url O URL a ser adicionado.
+     * @throws RemoteException se ocorrer um erro durante a comunicação remota.
+     */
     @Override
     public synchronized void addLast(String url) throws RemoteException {
         queue.addLast(url);
-        //System.out.println("Added: " + url + " last");
-        //checkNadd();
     }
 
-
-//    private void checkNadd() {
-//        if (threadNumber == 0) {
-//            threadNumber++;
-//            new Thread(() -> {
-//                try {
-//                    alertObserver();
-//                } catch (RemoteException e) {
-//                    e.printStackTrace();
-//                }
-//            }).start();
-//        }
-//    }
-//    public synchronized void alertObserver() throws RemoteException {
-//        while (!queue.isEmpty() || !observers.isEmpty()) {
-//            String dataToSend = queue.pollFirst();
-//
-//            Random random = new Random();
-//            int index = random.nextInt(observers.size());
-//            DownloaderInterface observer = observers.get(index);
-//
-//            observer.onUrlAdded(dataToSend);
-//            System.out.println("Data sent to process: " + dataToSend);
-//        }
-//        System.out.println("Queue is empty.");
-//        threadNumber = 0;
-//    }
-
+    /**
+     * Método principal para inicializar a fila remotamente.
+     */
     public static void main(String[] args) {
         try {
             Queue q = new Queue();
             LocateRegistry.createRegistry(1096).rebind(NAMING_DOWNLOADER, q);
             LocateRegistry.createRegistry(1097).rebind(NAMING_GATEWAY, q);
             System.out.println("Queue ready.");
-
-
         } catch (RemoteException re) {
             System.out.println("Exception in GateWay.main: " + re);
         }
     }
-
 }
+
