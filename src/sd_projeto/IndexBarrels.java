@@ -13,7 +13,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 	static HashMap<URL_Content, Integer> urls = new HashMap<>();
 	static HashMap<String, int[]> words_HM = new HashMap<>();
-	//static HashMap<String, Integer> links = new HashMap<>();
+	static HashMap<Integer, int[]> links = new HashMap<>();
 
 	public static Request Conection;
 	private static String NAMING_URL;
@@ -78,7 +78,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	 */
 
 	public static void printUrls() {
-        System.out.println("Urls:");
+        System.out.println("\nUrls:\n");
         for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
             System.out.println("Title: " + entry.getKey().title);
 			System.out.println("URL: " + entry.getKey().url);
@@ -89,7 +89,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
     }
 
     public static void printWordsHM() {
-        System.out.println("Words_HM:");
+        System.out.println("\nWords_HM:\n");
         for (Map.Entry<String, int[]> entry : words_HM.entrySet()) {
             System.out.print(entry.getKey() + " -> ");
             for (int urlNum : entry.getValue()) {
@@ -99,6 +99,18 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
         }
         System.out.println();
     }
+
+	public static void printLinks() {
+		System.out.println("\nLINKS:\n");
+        for (Map.Entry<Integer, int[]> entry : links.entrySet()) {
+            System.out.print(entry.getKey() + " -> ");
+            for (int urlNum : entry.getValue()) {
+                System.out.print(urlNum + " ");
+            }
+            System.out.println();
+        }
+        System.out.println();
+	}
 
 	/*
 	 * 	<\Debug Functions>
@@ -471,6 +483,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 					message = new String(packet.getData(), 0, packet.getLength());
 
 					String url_a = message.substring(message.indexOf(":") + 2);
+					String list_url_a[] = url_a.split(" ");
 
 					URL_Content new_url = new URL_Content(title, url, publicationDate);
 
@@ -478,13 +491,17 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 					//System.out.println(url_a);
 
 					int aux_url_num = 0;
+					URL_Content aux;
 
-					if(searchByUrl(url) == null){			//Se o URL ainda nao existe na HM
+					if((aux = searchByUrl(url)) == null){			//Se o URL ainda nao existe na HM
 						aux_url_num = count_urls;			//Guardamos o num equivalente dele
 						urls.put(new_url, count_urls++);	//Adiciona na HM
 
 					}else{									//Se ja existe
-						aux_url_num = urls.get(new_url);	//vamos buscar o int associado
+						aux_url_num = get_num(new_url.url);	//vamos buscar o int associado
+						if(aux.title == null) aux.title = title;
+						if(aux.Pub_date == null) aux.Pub_date = publicationDate;
+						urls.put(aux, aux_url_num);
 					}
 
 					for(String w : list){		//Para cada palavra que o utilizador introduziu
@@ -505,8 +522,39 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 						}
 					}
 
+					int aux_url_num2;								// NUM do link da lista de links
+
+					for(String w : list_url_a){
+						if(searchByUrl(w) == null){					//Se o URL ainda nao existe na HM
+							aux_url_num2 = count_urls;				//Guardamos o num equivalente dele
+							new_url = new URL_Content(null, w, null);
+							urls.put(new_url, count_urls++);		//Adiciona na HM
+	
+						}else{										//Se ja existe
+							aux_url_num2 = get_num(w);				//vamos buscar o int associado
+						}
+
+						int[] existingArray = links.get(aux_url_num2);
+
+						if(existingArray == null){
+							existingArray = new int[1];
+							existingArray[0] = aux_url_num;
+							links.put(aux_url_num2, existingArray);
+						} else {
+							if(!check(existingArray, aux_url_num)){			
+								int newArrayLength = existingArray.length + 1;
+								int[] newArray = Arrays.copyOf(existingArray, newArrayLength);
+								newArray[newArrayLength - 1] = aux_url_num;
+								words_HM.put(w, newArray);
+							}
+						}
+					}
+
+					//System.out.println("\n==========================\n");
 					//printUrls();
 					//printWordsHM();
+					//printLinks();
+					//System.out.println("\n==========================\n");
 
 				} catch ( IOException e){
 					System.out.println("Erro");
@@ -523,6 +571,16 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				}
 			}
 			return null; // URL not found
+		}
+
+		public static int get_num(String url) {
+			for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
+				URL_Content urlContent = entry.getKey();
+				if (urlContent.url.equals(url)) {
+					return entry.getValue();
+				}
+			}
+			return -1; // NUM not found
 		}
 
 		private static boolean check(int[] nums, int num) {
