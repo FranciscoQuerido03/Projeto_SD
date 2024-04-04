@@ -76,6 +76,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 * Método para enviar solicitações aos barrels remotos.
 	 * @param c O cliente.
 	 * @param m A mensagem com a solicitação.
+	 * @param min Número que define o intervalo de resultados a serem retornados.
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
 	public void send_request_barrels(Client_I c, Message m) throws RemoteException {

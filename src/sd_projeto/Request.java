@@ -1,5 +1,7 @@
 package sd_projeto;
 
+import java.rmi.*;
+import java.util.ArrayList;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
@@ -43,7 +45,7 @@ public interface Request extends Remote {
      * @param m A lista de URLs a ser enviada como resposta ao cliente.
      * @throws RemoteException se ocorrer um erro durante a comunicação remota.
      */
-    public void answer(Urls_list m) throws RemoteException;
+    public void answer(ArrayList<URL_Content> m) throws RemoteException;
 
     /**
      * Envia uma mensagem de erro ao cliente quando não há correspondências para uma solicitação.

@@ -1,5 +1,9 @@
 package sd_projeto;
 
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Scanner;
 import java.net.MalformedURLException;
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
@@ -32,8 +36,12 @@ public class Client extends UnicastRemoteObject implements Client_I {
 	 * @param list A lista de URLs a ser impressa.
 	 * @throws RemoteException se ocorrer um erro durante a execução remota.
 	 */
-	public void print_on_client(Urls_list list) throws RemoteException {
-		System.out.println(list.toString());
+	public void print_on_client(ArrayList<URL_Content> list) throws java.rmi.RemoteException {
+
+		for (URL_Content urlContent : list) {
+			System.out.println(urlContent.toString()); 
+		}
+			
 	}
 
 	/**
@@ -59,7 +67,7 @@ public class Client extends UnicastRemoteObject implements Client_I {
 			Request Conection = (Request) Naming.lookup(NAMING);
 			while(keepItgoin){
 
-				System.out.println("\nSelecione uma opção:");
+				System.out.println("\nSelecione uma opcao:");
 				System.out.println("[1] search <search query>");
 				System.out.println("[2] index <url>");
 				System.out.println("[3] stats");

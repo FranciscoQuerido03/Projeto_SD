@@ -23,7 +23,7 @@ Registo2: request_gateway
 <\Queue>
 
 <Downloader>
-NUM_BARRELS: 1
+NUM_BARRELS: 2
 ADDRESS: 224.3.2.1
 PORT: 4321
 LookUp: rmi://localhost:1096/request_downloader

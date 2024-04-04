@@ -23,6 +23,6 @@ public class Udp_Mc_Packet {
      */
     @Override
     public String toString() {
-        return this.type + " " + this.packet;
+        return this.type + "\n" + this.packet;
     }
 }

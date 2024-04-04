@@ -1,6 +1,7 @@
 package sd_projeto;
 
 import java.rmi.*;
+import java.util.ArrayList;
 
 /**
  * Interface remota para comunicação com o cliente.
@@ -12,7 +13,7 @@ public interface Client_I extends Remote {
      * @param list A lista de URLs a ser impressa.
      * @throws java.rmi.RemoteException se ocorrer um erro durante a execução remota.
      */
-    public void print_on_client(Urls_list list) throws java.rmi.RemoteException;
+    public void print_on_client(ArrayList<URL_Content> list) throws java.rmi.RemoteException;
 
     /**
      * Imprime uma mensagem de erro no cliente.

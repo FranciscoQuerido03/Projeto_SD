@@ -13,7 +13,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 	static HashMap<URL_Content, Integer> urls = new HashMap<>();
 	static HashMap<String, int[]> words_HM = new HashMap<>();
-	//static HashMap<String, Integer> links = new HashMap<>();
+	static HashMap<Integer, int[]> links = new HashMap<>();
 
 	public static Request Conection;
 	private static String NAMING_URL;
@@ -32,41 +32,43 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	public void request(String m, int min) throws java.rmi.RemoteException {
 		String[] words = m.split(" ");
 		Urls_list not_found_words = new Urls_list(new ArrayList<>());
-		Urls_list lista_final = new Urls_list(new ArrayList<>());
+		ArrayList<URL_Content> resultado = new ArrayList<>();
 		System.out.println("Request received: " + m);
 
 		int count = 0; // contador para controlar o número de URLs adicionadas
 
-		for (String word : words) {
-			int[] nums = words_HM.get(word);
+		//printWordsHM();
 
-			if(nums != null){
-				for(int num : nums){
-					for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
-						if (entry.getValue() == num) {
-							count++;
+		for (String word : words) {								// Cada palavra das palavras de pesquisa
+			int[] nums = words_HM.get(word);					// Buscar array de ints que correspondem aos urls que a palavra esta associada
 
-							if (count > min * 10 - 10 && count <= min * 10) {
-								lista_final.addUrl(entry.getKey().url);
+			if(nums != null){									// Nums?
+				for(int num : nums){							// Para cada num
+					for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {	
+						if (entry.getValue() == num) {			// Se o value corresponder entao este url ta associado a palavra
+
+							for (Map.Entry<Integer, int[]> entry_l : links.entrySet()) {	// Ver quantos url apontam para este url
+								if(entry_l.getKey() == num){
+									entry.getKey().priority = entry_l.getValue().length;	
+									resultado.add(entry.getKey());
+									break;
+								}
 							}
-							break;
+
+                        	break;
 						}
 					}
 				}
 			} else {
 				not_found_words.addUrl(word);
 			}
-
-
-			if (count >= min * 10) {
-				break; // interrompe quando o limite for atingido
-			}
 		}
+		
 
-		if (lista_final.hasValues()) {
+		if (!resultado.isEmpty()) {
 			if(not_found_words.hasValues())
 				Conection.err_no_matches(new Message("No URLs found for: " + not_found_words.wordtoString()));
-			Conection.answer(lista_final);
+			Conection.answer(resultado);
 		} else {
 			Conection.err_no_matches(new Message("No URLs found for the entire input: " + not_found_words.wordtoString()));
 		}
@@ -78,7 +80,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	 */
 
 	public static void printUrls() {
-        System.out.println("Urls:");
+        System.out.println("\nUrls:\n");
         for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
             System.out.println("Title: " + entry.getKey().title);
 			System.out.println("URL: " + entry.getKey().url);
@@ -89,7 +91,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
     }
 
     public static void printWordsHM() {
-        System.out.println("Words_HM:");
+        System.out.println("\nWords_HM:\n");
         for (Map.Entry<String, int[]> entry : words_HM.entrySet()) {
             System.out.print(entry.getKey() + " -> ");
             for (int urlNum : entry.getValue()) {
@@ -99,6 +101,18 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
         }
         System.out.println();
     }
+
+	public static void printLinks() {
+		System.out.println("\nLINKS:\n");
+        for (Map.Entry<Integer, int[]> entry : links.entrySet()) {
+            System.out.print(entry.getKey() + " -> ");
+            for (int urlNum : entry.getValue()) {
+                System.out.print(urlNum + " ");
+            }
+            System.out.println();
+        }
+        System.out.println();
+	}
 
 	/*
 	 * 	<\Debug Functions>
@@ -169,6 +183,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			
 			send_mc_urls();
 			send_mc_words();
+			send_mc_links();
 	
 		}
 	
@@ -190,16 +205,12 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		
 					for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
 						//System.out.println(entry.getKey() + " " + entry.getValue());
-						Udp_Mc_Packet mc_packet = new Udp_Mc_Packet("Sync_url", entry.getKey() + " " + entry.getValue());
+						Udp_Mc_Packet mc_packet = new Udp_Mc_Packet("Sync_url", entry.getKey().toString() + entry.getValue());
+						//System.out.println(mc_packet.toString());
 						buffer = mc_packet.toString().getBytes();
 						packet = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
 						socket.send(packet);
 					}
-					
-					Udp_Mc_Packet mc_packet_end = new Udp_Mc_Packet("Sync_url_end", content);
-					buffer = mc_packet_end.toString().getBytes();
-					DatagramPacket packet_end = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
-					socket.send(packet_end);
 
 					socket.close();
 				}
@@ -244,11 +255,49 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 						packet = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
 						socket.send(packet);
 					}
-					
-					Udp_Mc_Packet mc_packet_end = new Udp_Mc_Packet("Sync_word_end", content);
-					buffer = mc_packet_end.toString().getBytes();
-					DatagramPacket packet_end = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
-					socket.send(packet_end);
+		
+					socket.close();
+				}
+	
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private void send_mc_links() {
+			String content = "";
+			MulticastSocket socket = null;
+			byte[] buffer;
+			DatagramPacket packet;
+	
+			try{
+	
+				synchronized(links) {	
+		
+					socket = new MulticastSocket(PORT);
+					socket.setReuseAddress(true);
+					InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
+					socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
+		
+		
+					for (Map.Entry<Integer, int[]> entry : links.entrySet()) {
+						//System.out.println(entry.getKey() + " " + entry.getValue());
+						StringBuilder messageBuilder = new StringBuilder();
+						messageBuilder.append(entry.getKey()).append(" ");
+		
+						int[] values = entry.getValue();
+						for (int value : values) {
+							messageBuilder.append(value).append(" ");
+						}
+		
+						// Remove the last space
+						messageBuilder.deleteCharAt(messageBuilder.length() - 1);
+		
+						Udp_Mc_Packet mc_packet = new Udp_Mc_Packet("Sync_link", messageBuilder.toString());
+						buffer = mc_packet.toString().getBytes();
+						packet = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
+						socket.send(packet);
+					}
 		
 					socket.close();
 				}
@@ -321,17 +370,18 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	
 				while(check){
 
-					byte[] buffer = new byte[256*2];
+					byte[] buffer = new byte[256*4];
 					DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 					socket.receive(packet);
 					String message = new String(packet.getData(), 0, packet.getLength()).trim();
-					String sections[] = message.split(" ");
+					String sections[] = message.split("\n");
 
-					//if(sections[0].equals("Sync_url"))
-					//	Update_url_HM(message);
+					if(sections[0].equals("Sync_url"))
+						Update_url_HM(message);
 					if(sections[0].equals("Sync_word"))
 						Update_word_HM(message);
-	
+					if(sections[0].equals("Sync_link"))
+						Update_link_HM(message);
 					//System.out.println(message);
 				}
 	
@@ -343,15 +393,16 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		}
 	
 		public void Update_word_HM(String m) {
-			String[] sections = m.split(" ");
-			//System.out.println(m);
-	
+			String[] aux = m.split("\n");
+			String[] sections = aux[1].split(" ");
+			//System.out.println("word\n" + m);
+
 			if(sections.length >= 3){
-				String word = sections[1];
-				int[] nums_add = new int[sections.length-2];
+				String word = sections[0];
+				int[] nums_add = new int[sections.length-1];
 	
-				for(int i = 2; i<sections.length; i++){
-					nums_add[i-2] = Integer.parseInt(sections[i]);
+				for(int i = 1; i<sections.length; i++){
+					nums_add[i-1] = Integer.parseInt(sections[i]);
 				}
 
 				synchronized(words_HM){
@@ -363,26 +414,54 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				System.err.println("Incorrect input format: " + m);
 			}
 		}
-		/*
-		private void Update_url_HM(String m) {
-			String[] sections = m.split(" ");
-			//System.out.println(m);
-			//System.out.println(sections[2]);
-			
-			if (sections.length >= 3) {
-				String url = sections[1];
-				int count = Integer.parseInt(sections[2]);
 
-				synchronized(urls){
-					if(!urls.containsKey(url))
-						urls.put(url, count);
+		public void Update_link_HM(String m) {
+			String[] aux = m.split("\n");
+			String[] sections = aux[1].split(" ");
+			//System.out.println("link\n" + m);
+	
+			if(sections.length >= 2){
+				int num = Integer.parseInt(sections[0]);
+				int[] nums_add = new int[sections.length-1];
+	
+				for(int i = 1; i<sections.length; i++){
+					nums_add[i-1] = Integer.parseInt(sections[i]);
+				}
+
+				synchronized(links){
+					if (!links.containsKey(num) || !Arrays.equals(links.get(num), nums_add))
+						links.put(num, nums_add);
 				}
 	
 			} else {
 				System.err.println("Incorrect input format: " + m);
 			}
 		}
-		 */
+		
+		private void Update_url_HM(String m) {
+			String[] sections = m.split("\n");
+			URL_Content u;
+			//System.out.println("url\n" + m);
+			
+			if (sections.length >= 3) {
+				String title = sections[1].substring(sections[1].indexOf(":") + 2);
+				String url = sections[2].substring(sections[2].indexOf(":") + 2);
+				String Pub_date = sections[3].substring(sections[3].indexOf(":") + 2);
+				u = new URL_Content(title, url, Pub_date);
+				int count = Integer.parseInt(sections[4]);
+				
+				System.out.println(Pub_date);
+
+				synchronized(urls){
+					if(!urls.containsKey(u))
+						urls.put(u, count);
+				}
+	
+			} else {
+				System.err.println("Incorrect input format: " + m);
+			}
+		}
+		
 	}
 
 	static class Barrel_Function implements Runnable {
@@ -428,7 +507,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				}));
 
 				while (true) {
-					byte[] buffer = new byte[4096];
+					byte[] buffer = new byte[4096 * 4];
 					DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 					socket.receive(packet);
 					//System.out.println(barrel_id + " Received message: " + new String(packet.getData(), 0, packet.getLength()));
@@ -450,7 +529,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		private static void DealPacket(DatagramPacket packet) {
 			String message = new String(packet.getData(), 0, packet.getLength());
 			
-			System.out.println(message);
+			//System.out.println(message);
 			String[] words = message.split("\n");
 
 			if(words[0].equals("Data")){
@@ -468,9 +547,12 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 					String list[] = tokens.split(" ");
 
 					socket.receive(packet);
+					//System.out.println(packet.getLength());
 					message = new String(packet.getData(), 0, packet.getLength());
 
 					String url_a = message.substring(message.indexOf(":") + 2);
+					String list_url_a[] = url_a.split(" ");
+
 
 					URL_Content new_url = new URL_Content(title, url, publicationDate);
 
@@ -478,35 +560,77 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 					//System.out.println(url_a);
 
 					int aux_url_num = 0;
+					URL_Content aux;
 
-					if(searchByUrl(url) == null){			//Se o URL ainda nao existe na HM
-						aux_url_num = count_urls;			//Guardamos o num equivalente dele
-						urls.put(new_url, count_urls++);	//Adiciona na HM
+					synchronized(urls){
+					
+						if((aux = searchByUrl(url)) == null){			//Se o URL ainda nao existe na HM
+							aux_url_num = count_urls;			//Guardamos o num equivalente dele
+							urls.put(new_url, count_urls++);	//Adiciona na HM
 
-					}else{									//Se ja existe
-						aux_url_num = urls.get(new_url);	//vamos buscar o int associado
+						}else{									//Se ja existe
+							aux_url_num = get_num(new_url.url);	//vamos buscar o int associado
+							if(aux.title == null) aux.title = title;
+							if(aux.Pub_date == null) aux.Pub_date = publicationDate;
+							urls.put(aux, aux_url_num);
+						}
 					}
 
-					for(String w : list){		//Para cada palavra que o utilizador introduziu
-						w = w.toLowerCase();
-						int[] existingArray = words_HM.get(w);
-						if(existingArray == null){				// Se a palavra ainda nao existe na HM
-							existingArray = new int[1];
-							existingArray[0] = aux_url_num;
-							//System.out.println(w);
-							words_HM.put(w, existingArray);
-						}else{									// Se ja existe
-							if(!check(existingArray, aux_url_num)){			// Se o URL ainda nao esta associado a palavra em questa
-								int newArrayLength = existingArray.length + 1;
-								int[] newArray = Arrays.copyOf(existingArray, newArrayLength);
-								newArray[newArrayLength - 1] = aux_url_num;
-								words_HM.put(w, newArray);
+					synchronized(words_HM){
+						for(String w : list){		//Para cada palavra que o utilizador introduziu
+							w = w.toLowerCase();
+							int[] existingArray = words_HM.get(w);
+							if(existingArray == null){				// Se a palavra ainda nao existe na HM
+								existingArray = new int[1];
+								existingArray[0] = aux_url_num;
+								//System.out.println(w);
+								words_HM.put(w, existingArray);
+							}else{									// Se ja existe
+								if(!check(existingArray, aux_url_num)){			// Se o URL ainda nao esta associado a palavra em questa
+									int newArrayLength = existingArray.length + 1;
+									int[] newArray = Arrays.copyOf(existingArray, newArrayLength);
+									newArray[newArrayLength - 1] = aux_url_num;
+									words_HM.put(w, newArray);
+								}
 							}
 						}
 					}
 
+					int aux_url_num2;								// NUM do link da lista de links
+
+					synchronized(links){
+						for(String w : list_url_a){
+							if(searchByUrl(w) == null){					//Se o URL ainda nao existe na HM
+								aux_url_num2 = count_urls;				//Guardamos o num equivalente dele
+								new_url = new URL_Content(null, w, null);
+								urls.put(new_url, count_urls++);		//Adiciona na HM
+		
+							}else{										//Se ja existe
+								aux_url_num2 = get_num(w);				//vamos buscar o int associado
+							}
+
+							int[] existingArray = links.get(aux_url_num2);
+
+							if(existingArray == null){
+								existingArray = new int[1];
+								existingArray[0] = aux_url_num;
+								links.put(aux_url_num2, existingArray);
+							} else {
+								if(!check(existingArray, aux_url_num)){			
+									int newArrayLength = existingArray.length + 1;
+									int[] newArray = Arrays.copyOf(existingArray, newArrayLength);
+									newArray[newArrayLength - 1] = aux_url_num;
+									words_HM.put(w, newArray);
+								}
+							}
+						}
+					}
+
+					//System.out.println("\n==========================\n");
 					//printUrls();
 					//printWordsHM();
+					//printLinks();
+					//System.out.println("\n==========================\n");
 
 				} catch ( IOException e){
 					System.out.println("Erro");
@@ -516,13 +640,25 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		}
 
 		public static URL_Content searchByUrl(String url) {
+			synchronized(urls){
+				for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
+					URL_Content urlContent = entry.getKey();
+					if (urlContent.url.equals(url)) {
+						return urlContent;
+					}
+				}
+				return null; // URL not found
+			}
+		}
+
+		public static int get_num(String url) {
 			for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
 				URL_Content urlContent = entry.getKey();
 				if (urlContent.url.equals(url)) {
-					return urlContent;
+					return entry.getValue();
 				}
 			}
-			return null; // URL not found
+			return -1; // NUM not found
 		}
 
 		private static boolean check(int[] nums, int num) {

@@ -22,6 +22,7 @@ public class Downloader extends Thread {
     private static InetAddress group;
     private static int NUM;
     private static QueueInterface queue;
+    private static BloomFilter<String>  bloomFilter;
     private static final Object lock = new Object();
 
     private static final List<String> stopWords = Arrays.asList(
@@ -75,6 +76,7 @@ public class Downloader extends Thread {
                 url = queue.getFirst();
                 if (url != null && correctURL(url)) {
                     try {
+                        System.out.println("Processing URL...");
                         MulticastSocket socket = new MulticastSocket();
                         Document doc = Jsoup.connect(url).get();
 
