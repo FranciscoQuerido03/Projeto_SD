@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
-	static HashMap<String, Integer> urls = new HashMap<>();
+	static HashMap<URL_Content, Integer> urls = new HashMap<>();
 	static HashMap<String, int[]> words_HM = new HashMap<>();
 	//static HashMap<String, Integer> links = new HashMap<>();
 
@@ -42,12 +42,12 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 			if(nums != null){
 				for(int num : nums){
-					for (Map.Entry<String, Integer> entry : urls.entrySet()) {
+					for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
 						if (entry.getValue() == num) {
 							count++;
 
 							if (count > min * 10 - 10 && count <= min * 10) {
-								lista_final.addUrl(entry.getKey());
+								lista_final.addUrl(entry.getKey().url);
 							}
 							break;
 						}
@@ -77,15 +77,18 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	 * 	<Debug Functions>
 	 */
 
-	public void printUrls() throws java.rmi.RemoteException {
+	public static void printUrls() {
         System.out.println("Urls:");
-        for (Map.Entry<String, Integer> entry : urls.entrySet()) {
-            System.out.println(entry.getKey() + " -> " + entry.getValue());
+        for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
+            System.out.println("Title: " + entry.getKey().title);
+			System.out.println("URL: " + entry.getKey().url);
+			System.out.println("PUB_DATE: " + entry.getKey().Pub_date);
+			System.out.println("Value: " + entry.getValue());
         }
         System.out.println();
     }
 
-    public void printWordsHM() throws java.rmi.RemoteException {
+    public static void printWordsHM() {
         System.out.println("Words_HM:");
         for (Map.Entry<String, int[]> entry : words_HM.entrySet()) {
             System.out.print(entry.getKey() + " -> ");
@@ -185,7 +188,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 					socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
 		
 		
-					for (Map.Entry<String, Integer> entry : urls.entrySet()) {
+					for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
 						//System.out.println(entry.getKey() + " " + entry.getValue());
 						Udp_Mc_Packet mc_packet = new Udp_Mc_Packet("Sync_url", entry.getKey() + " " + entry.getValue());
 						buffer = mc_packet.toString().getBytes();
@@ -324,8 +327,8 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 					String message = new String(packet.getData(), 0, packet.getLength()).trim();
 					String sections[] = message.split(" ");
 
-					if(sections[0].equals("Sync_url"))
-						Update_url_HM(message);
+					//if(sections[0].equals("Sync_url"))
+					//	Update_url_HM(message);
 					if(sections[0].equals("Sync_word"))
 						Update_word_HM(message);
 	
@@ -360,7 +363,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				System.err.println("Incorrect input format: " + m);
 			}
 		}
-	
+		/*
 		private void Update_url_HM(String m) {
 			String[] sections = m.split(" ");
 			//System.out.println(m);
@@ -379,6 +382,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				System.err.println("Incorrect input format: " + m);
 			}
 		}
+		 */
 	}
 
 	static class Barrel_Function implements Runnable {
@@ -424,7 +428,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				}));
 
 				while (true) {
-					byte[] buffer = new byte[256];
+					byte[] buffer = new byte[4096];
 					DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 					socket.receive(packet);
 					//System.out.println(barrel_id + " Received message: " + new String(packet.getData(), 0, packet.getLength()));
@@ -445,46 +449,80 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 		private static void DealPacket(DatagramPacket packet) {
 			String message = new String(packet.getData(), 0, packet.getLength());
-			System.out.println("\n" + message);
-			String[] words = message.split(" ");
 			
+			System.out.println(message);
+			String[] words = message.split("\n");
+
 			if(words[0].equals("Data")){
-				String url = words[1];
-				String[] list;
-				if (words.length > 2 && words[2] != null) {
-					list = words[2].split(" ");
-				} else {
-					list = new String[0];
-				}
 
-				int aux_url_num = 0;
+				try{
 
-				if(urls.get(url) == null){			//Se o URL ainda nao existe na HM
-					aux_url_num = count_urls;		//Guardamos o num equivalente dele
-					urls.put(url, count_urls++);	//Adiciona na HM
+					String url = words[1].split(" ")[1];
+					String title = words[2].substring(words[2].indexOf(":") + 2);
+					String publicationDate = words[3].substring(words[3].indexOf(":") + 2);
 
-				}else{								//Se ja existe
-					aux_url_num = urls.get(url);	//vamos buscar o int associado
-				}
+					socket.receive(packet);
+					message = new String(packet.getData(), 0, packet.getLength());
 
-				for(String w : list){		//Para cada palavra que o utilizador introduziu
-					w = w.toLowerCase();
-					int[] existingArray = words_HM.get(w);
-					if(existingArray == null){				// Se a palavra ainda nao existe na HM
-						existingArray = new int[1];
-						existingArray[0] = aux_url_num;
-						//System.out.println(w);
-						words_HM.put(w, existingArray);
-					}else{									// Se ja existe
-						if(!check(existingArray, aux_url_num)){			// Se o URL ainda nao esta associado a palavra em questa
-							int newArrayLength = existingArray.length + 1;
-							int[] newArray = Arrays.copyOf(existingArray, newArrayLength);
-							newArray[newArrayLength - 1] = aux_url_num;
-							words_HM.put(w, newArray);
+					String tokens = message.substring(message.indexOf(":") + 2);
+					String list[] = tokens.split(" ");
+
+					socket.receive(packet);
+					message = new String(packet.getData(), 0, packet.getLength());
+
+					String url_a = message.substring(message.indexOf(":") + 2);
+
+					URL_Content new_url = new URL_Content(title, url, publicationDate);
+
+					//System.out.println(tokens);
+					//System.out.println(url_a);
+
+					int aux_url_num = 0;
+
+					if(searchByUrl(url) == null){			//Se o URL ainda nao existe na HM
+						aux_url_num = count_urls;			//Guardamos o num equivalente dele
+						urls.put(new_url, count_urls++);	//Adiciona na HM
+
+					}else{									//Se ja existe
+						aux_url_num = urls.get(new_url);	//vamos buscar o int associado
+					}
+
+					for(String w : list){		//Para cada palavra que o utilizador introduziu
+						w = w.toLowerCase();
+						int[] existingArray = words_HM.get(w);
+						if(existingArray == null){				// Se a palavra ainda nao existe na HM
+							existingArray = new int[1];
+							existingArray[0] = aux_url_num;
+							//System.out.println(w);
+							words_HM.put(w, existingArray);
+						}else{									// Se ja existe
+							if(!check(existingArray, aux_url_num)){			// Se o URL ainda nao esta associado a palavra em questa
+								int newArrayLength = existingArray.length + 1;
+								int[] newArray = Arrays.copyOf(existingArray, newArrayLength);
+								newArray[newArrayLength - 1] = aux_url_num;
+								words_HM.put(w, newArray);
+							}
 						}
 					}
+
+					//printUrls();
+					//printWordsHM();
+
+				} catch ( IOException e){
+					System.out.println("Erro");
+				}
+
+			}
+		}
+
+		public static URL_Content searchByUrl(String url) {
+			for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
+				URL_Content urlContent = entry.getKey();
+				if (urlContent.url.equals(url)) {
+					return urlContent;
 				}
 			}
+			return null; // URL not found
 		}
 
 		private static boolean check(int[] nums, int num) {
