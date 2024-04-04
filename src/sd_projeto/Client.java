@@ -67,7 +67,7 @@ public class Client extends UnicastRemoteObject implements Client_I {
 			Request Conection = (Request) Naming.lookup(NAMING);
 			while(keepItgoin){
 
-				System.out.println("\nSelecione uma opção:");
+				System.out.println("\nSelecione uma opcao:");
 				System.out.println("[1] search <search query>");
 				System.out.println("[2] index <url>");
 				System.out.println("[3] stats");

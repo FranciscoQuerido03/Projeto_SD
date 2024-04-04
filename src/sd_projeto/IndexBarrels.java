@@ -183,6 +183,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			
 			send_mc_urls();
 			send_mc_words();
+			send_mc_links();
 	
 		}
 	
@@ -204,16 +205,12 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		
 					for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
 						//System.out.println(entry.getKey() + " " + entry.getValue());
-						Udp_Mc_Packet mc_packet = new Udp_Mc_Packet("Sync_url", entry.getKey() + " " + entry.getValue());
+						Udp_Mc_Packet mc_packet = new Udp_Mc_Packet("Sync_url", entry.getKey().toString() + entry.getValue());
+						//System.out.println(mc_packet.toString());
 						buffer = mc_packet.toString().getBytes();
 						packet = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
 						socket.send(packet);
 					}
-					
-					Udp_Mc_Packet mc_packet_end = new Udp_Mc_Packet("Sync_url_end", content);
-					buffer = mc_packet_end.toString().getBytes();
-					DatagramPacket packet_end = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
-					socket.send(packet_end);
 
 					socket.close();
 				}
@@ -258,11 +255,49 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 						packet = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
 						socket.send(packet);
 					}
-					
-					Udp_Mc_Packet mc_packet_end = new Udp_Mc_Packet("Sync_word_end", content);
-					buffer = mc_packet_end.toString().getBytes();
-					DatagramPacket packet_end = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
-					socket.send(packet_end);
+		
+					socket.close();
+				}
+	
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private void send_mc_links() {
+			String content = "";
+			MulticastSocket socket = null;
+			byte[] buffer;
+			DatagramPacket packet;
+	
+			try{
+	
+				synchronized(links) {	
+		
+					socket = new MulticastSocket(PORT);
+					socket.setReuseAddress(true);
+					InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
+					socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
+		
+		
+					for (Map.Entry<Integer, int[]> entry : links.entrySet()) {
+						//System.out.println(entry.getKey() + " " + entry.getValue());
+						StringBuilder messageBuilder = new StringBuilder();
+						messageBuilder.append(entry.getKey()).append(" ");
+		
+						int[] values = entry.getValue();
+						for (int value : values) {
+							messageBuilder.append(value).append(" ");
+						}
+		
+						// Remove the last space
+						messageBuilder.deleteCharAt(messageBuilder.length() - 1);
+		
+						Udp_Mc_Packet mc_packet = new Udp_Mc_Packet("Sync_link", messageBuilder.toString());
+						buffer = mc_packet.toString().getBytes();
+						packet = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
+						socket.send(packet);
+					}
 		
 					socket.close();
 				}
@@ -335,17 +370,18 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	
 				while(check){
 
-					byte[] buffer = new byte[256*2];
+					byte[] buffer = new byte[256*4];
 					DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 					socket.receive(packet);
 					String message = new String(packet.getData(), 0, packet.getLength()).trim();
-					String sections[] = message.split(" ");
+					String sections[] = message.split("\n");
 
-					//if(sections[0].equals("Sync_url"))
-					//	Update_url_HM(message);
+					if(sections[0].equals("Sync_url"))
+						Update_url_HM(message);
 					if(sections[0].equals("Sync_word"))
 						Update_word_HM(message);
-	
+					if(sections[0].equals("Sync_link"))
+						Update_link_HM(message);
 					//System.out.println(message);
 				}
 	
@@ -357,15 +393,16 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		}
 	
 		public void Update_word_HM(String m) {
-			String[] sections = m.split(" ");
-			//System.out.println(m);
-	
+			String[] aux = m.split("\n");
+			String[] sections = aux[1].split(" ");
+			//System.out.println("word\n" + m);
+
 			if(sections.length >= 3){
-				String word = sections[1];
-				int[] nums_add = new int[sections.length-2];
+				String word = sections[0];
+				int[] nums_add = new int[sections.length-1];
 	
-				for(int i = 2; i<sections.length; i++){
-					nums_add[i-2] = Integer.parseInt(sections[i]);
+				for(int i = 1; i<sections.length; i++){
+					nums_add[i-1] = Integer.parseInt(sections[i]);
 				}
 
 				synchronized(words_HM){
@@ -377,26 +414,54 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				System.err.println("Incorrect input format: " + m);
 			}
 		}
-		/*
-		private void Update_url_HM(String m) {
-			String[] sections = m.split(" ");
-			//System.out.println(m);
-			//System.out.println(sections[2]);
-			
-			if (sections.length >= 3) {
-				String url = sections[1];
-				int count = Integer.parseInt(sections[2]);
 
-				synchronized(urls){
-					if(!urls.containsKey(url))
-						urls.put(url, count);
+		public void Update_link_HM(String m) {
+			String[] aux = m.split("\n");
+			String[] sections = aux[1].split(" ");
+			//System.out.println("link\n" + m);
+	
+			if(sections.length >= 2){
+				int num = Integer.parseInt(sections[0]);
+				int[] nums_add = new int[sections.length-1];
+	
+				for(int i = 1; i<sections.length; i++){
+					nums_add[i-1] = Integer.parseInt(sections[i]);
+				}
+
+				synchronized(links){
+					if (!links.containsKey(num) || !Arrays.equals(links.get(num), nums_add))
+						links.put(num, nums_add);
 				}
 	
 			} else {
 				System.err.println("Incorrect input format: " + m);
 			}
 		}
-		 */
+		
+		private void Update_url_HM(String m) {
+			String[] sections = m.split("\n");
+			URL_Content u;
+			//System.out.println("url\n" + m);
+			
+			if (sections.length >= 3) {
+				String title = sections[1].substring(sections[1].indexOf(":") + 2);
+				String url = sections[2].substring(sections[2].indexOf(":") + 2);
+				String Pub_date = sections[3].substring(sections[3].indexOf(":") + 2);
+				u = new URL_Content(title, url, Pub_date);
+				int count = Integer.parseInt(sections[4]);
+				
+				System.out.println(Pub_date);
+
+				synchronized(urls){
+					if(!urls.containsKey(u))
+						urls.put(u, count);
+				}
+	
+			} else {
+				System.err.println("Incorrect input format: " + m);
+			}
+		}
+		
 	}
 
 	static class Barrel_Function implements Runnable {
@@ -429,6 +494,16 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				socket = new MulticastSocket(PORT); // create socket and bind it
 				InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
 				socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
+
+				try {
+					Thread.sleep(7000); // Aguarda por 5 segundos
+				} catch (InterruptedException e) {
+					// Tratamento de exceção, se necessário
+				}
+
+				printUrls();
+				printWordsHM();
+				printLinks();
 
 				Conection.subscribe((Barrel_I) h, barrel_id);
 
@@ -482,11 +557,12 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 					String list[] = tokens.split(" ");
 
 					socket.receive(packet);
-					System.out.println(packet.getLength());
+					//System.out.println(packet.getLength());
 					message = new String(packet.getData(), 0, packet.getLength());
 
 					String url_a = message.substring(message.indexOf(":") + 2);
 					String list_url_a[] = url_a.split(" ");
+
 
 					URL_Content new_url = new URL_Content(title, url, publicationDate);
 

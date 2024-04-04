@@ -37,9 +37,9 @@ public class URL_Content implements Serializable {
     @Override
     public String toString() {
         return "Title: " + title + "\n" +
-            "URL: " + url + "\n" +
-            "Prio: " + priority  + "\n" +
-            "Publication Date: " + Pub_date + "\n\n";
+            "URL: " + url + "\n" +                 
+            "Publication Date: " + Pub_date + "\n";
+            //"Prio: " + priority  + "\n\n";
     }
 
 }

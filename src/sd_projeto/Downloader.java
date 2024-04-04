@@ -46,7 +46,7 @@ public class Downloader extends Thread {
             "fôssemos", "fossem", "for", "formos", "forem", "serei", "será", "seremos", "serão", "seria", "seríamos", "seriam",
             "tenho", "tem", "temos", "tém", "tinha", "tínhamos", "tinham", "tive", "teve", "tivemos", "tiveram", "tivera",
             "tivéramos", "tenha", "tenhamos", "tenham", "tivesse", "tivéssemos", "tivessem", "tiver", "tivermos", "tiverem",
-            "terei", "terá", "teremos", "terão", "teria", "teríamos", "teriam", "?", "!", "-", " "
+            "terei", "terá", "teremos", "terão", "teria", "teríamos", "teriam", "?", "!", "-", " ", "\n"
     );
 
 
@@ -129,16 +129,7 @@ public class Downloader extends Thread {
 
                         // Extrair to_do o texto do HTML
                         String tokens = doc.text();
-                        Pattern pattern = Pattern.compile("\\b\\p{L}+\\b");
-                        Matcher matcher = pattern.matcher(tokens);
-                        List<String> filteredWords = new ArrayList<>();
-                        while (matcher.find()) {
-                            String word = matcher.group().toLowerCase();
-                            if (!stopWords.contains(word)) {
-                                filteredWords.add(word);
-                            }
-                        }
-                        tokens = String.join(" ", filteredWords);
+                        tokens = removeStopWords(tokens);
 
                         // Extrair URLs
                         Elements links = doc.select("a[href]");
@@ -157,10 +148,14 @@ public class Downloader extends Thread {
                             }
                         }
 
+                        if (linksText.length() > 0) {
+                            linksText.deleteCharAt(linksText.length() - 1);
+                        }
+
                         // mensagem multicast
                         String message1 = "Data" + "\nURL: " + url + "\nTitle: " + title + "\nPublication Date: " + publicationDate + "\n";
                         String message2 = "Text: " + tokens + "\n";
-                        String message3 = "Links: " + linksText + "\n";
+                        String message3 = "Links: " + linksText;
 
                         // Envie a mensagem multicast
                         byte[] buffer = message1.getBytes();
