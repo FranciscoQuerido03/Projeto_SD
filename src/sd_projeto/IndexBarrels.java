@@ -442,7 +442,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				}));
 
 				while (true) {
-					byte[] buffer = new byte[4096];
+					byte[] buffer = new byte[4096 * 4];
 					DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 					socket.receive(packet);
 					//System.out.println(barrel_id + " Received message: " + new String(packet.getData(), 0, packet.getLength()));
@@ -482,6 +482,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 					String list[] = tokens.split(" ");
 
 					socket.receive(packet);
+					System.out.println(packet.getLength());
 					message = new String(packet.getData(), 0, packet.getLength());
 
 					String url_a = message.substring(message.indexOf(":") + 2);
@@ -495,59 +496,66 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 					int aux_url_num = 0;
 					URL_Content aux;
 
-					if((aux = searchByUrl(url)) == null){			//Se o URL ainda nao existe na HM
-						aux_url_num = count_urls;			//Guardamos o num equivalente dele
-						urls.put(new_url, count_urls++);	//Adiciona na HM
+					synchronized(urls){
+					
+						if((aux = searchByUrl(url)) == null){			//Se o URL ainda nao existe na HM
+							aux_url_num = count_urls;			//Guardamos o num equivalente dele
+							urls.put(new_url, count_urls++);	//Adiciona na HM
 
-					}else{									//Se ja existe
-						aux_url_num = get_num(new_url.url);	//vamos buscar o int associado
-						if(aux.title == null) aux.title = title;
-						if(aux.Pub_date == null) aux.Pub_date = publicationDate;
-						urls.put(aux, aux_url_num);
+						}else{									//Se ja existe
+							aux_url_num = get_num(new_url.url);	//vamos buscar o int associado
+							if(aux.title == null) aux.title = title;
+							if(aux.Pub_date == null) aux.Pub_date = publicationDate;
+							urls.put(aux, aux_url_num);
+						}
 					}
 
-					for(String w : list){		//Para cada palavra que o utilizador introduziu
-						w = w.toLowerCase();
-						int[] existingArray = words_HM.get(w);
-						if(existingArray == null){				// Se a palavra ainda nao existe na HM
-							existingArray = new int[1];
-							existingArray[0] = aux_url_num;
-							//System.out.println(w);
-							words_HM.put(w, existingArray);
-						}else{									// Se ja existe
-							if(!check(existingArray, aux_url_num)){			// Se o URL ainda nao esta associado a palavra em questa
-								int newArrayLength = existingArray.length + 1;
-								int[] newArray = Arrays.copyOf(existingArray, newArrayLength);
-								newArray[newArrayLength - 1] = aux_url_num;
-								words_HM.put(w, newArray);
+					synchronized(words_HM){
+						for(String w : list){		//Para cada palavra que o utilizador introduziu
+							w = w.toLowerCase();
+							int[] existingArray = words_HM.get(w);
+							if(existingArray == null){				// Se a palavra ainda nao existe na HM
+								existingArray = new int[1];
+								existingArray[0] = aux_url_num;
+								//System.out.println(w);
+								words_HM.put(w, existingArray);
+							}else{									// Se ja existe
+								if(!check(existingArray, aux_url_num)){			// Se o URL ainda nao esta associado a palavra em questa
+									int newArrayLength = existingArray.length + 1;
+									int[] newArray = Arrays.copyOf(existingArray, newArrayLength);
+									newArray[newArrayLength - 1] = aux_url_num;
+									words_HM.put(w, newArray);
+								}
 							}
 						}
 					}
 
 					int aux_url_num2;								// NUM do link da lista de links
 
-					for(String w : list_url_a){
-						if(searchByUrl(w) == null){					//Se o URL ainda nao existe na HM
-							aux_url_num2 = count_urls;				//Guardamos o num equivalente dele
-							new_url = new URL_Content(null, w, null);
-							urls.put(new_url, count_urls++);		//Adiciona na HM
-	
-						}else{										//Se ja existe
-							aux_url_num2 = get_num(w);				//vamos buscar o int associado
-						}
+					synchronized(links){
+						for(String w : list_url_a){
+							if(searchByUrl(w) == null){					//Se o URL ainda nao existe na HM
+								aux_url_num2 = count_urls;				//Guardamos o num equivalente dele
+								new_url = new URL_Content(null, w, null);
+								urls.put(new_url, count_urls++);		//Adiciona na HM
+		
+							}else{										//Se ja existe
+								aux_url_num2 = get_num(w);				//vamos buscar o int associado
+							}
 
-						int[] existingArray = links.get(aux_url_num2);
+							int[] existingArray = links.get(aux_url_num2);
 
-						if(existingArray == null){
-							existingArray = new int[1];
-							existingArray[0] = aux_url_num;
-							links.put(aux_url_num2, existingArray);
-						} else {
-							if(!check(existingArray, aux_url_num)){			
-								int newArrayLength = existingArray.length + 1;
-								int[] newArray = Arrays.copyOf(existingArray, newArrayLength);
-								newArray[newArrayLength - 1] = aux_url_num;
-								words_HM.put(w, newArray);
+							if(existingArray == null){
+								existingArray = new int[1];
+								existingArray[0] = aux_url_num;
+								links.put(aux_url_num2, existingArray);
+							} else {
+								if(!check(existingArray, aux_url_num)){			
+									int newArrayLength = existingArray.length + 1;
+									int[] newArray = Arrays.copyOf(existingArray, newArrayLength);
+									newArray[newArrayLength - 1] = aux_url_num;
+									words_HM.put(w, newArray);
+								}
 							}
 						}
 					}
@@ -566,13 +574,15 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		}
 
 		public static URL_Content searchByUrl(String url) {
-			for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
-				URL_Content urlContent = entry.getKey();
-				if (urlContent.url.equals(url)) {
-					return urlContent;
+			synchronized(urls){
+				for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
+					URL_Content urlContent = entry.getKey();
+					if (urlContent.url.equals(url)) {
+						return urlContent;
+					}
 				}
+				return null; // URL not found
 			}
-			return null; // URL not found
 		}
 
 		public static int get_num(String url) {
