@@ -474,12 +474,16 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		private void Update_url_HM(String m) {
 			String[] sections = m.split("\n");
 			URL_Content u;
+			String cit = new String();
 			//System.out.println("url\n" + m);
 
 			if (sections.length >= 3) {
 				String title = sections[1].substring(sections[1].indexOf(":") + 2);
 				String url = sections[2].substring(sections[2].indexOf(":") + 2);
+				if(sections.length >= 4)
+					cit = sections[3];
 				u = new URL_Content(title, url);
+				u.add_citacao(cit);
 				int count = Integer.parseInt(sections[4]);
 
 				synchronized(urls){
