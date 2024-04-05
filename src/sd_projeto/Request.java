@@ -13,10 +13,9 @@ public interface Request extends Remote {
      * Método que solicita a um barrel a pesquisa de um determinado conjunto de palarvas.
      * @param c O cliente que fez a solicitação.
      * @param m A mensagem com a solicitação.
-     * @param min Número que define o intervalo de resultados a serem retornados.
      * @throws RemoteException se ocorrer um erro durante a comunicação remota.
      */
-    public void send_request_barrels(Client_I c, Message m, int min) throws RemoteException;
+    public void send_request_barrels(Client_I c, Message m) throws RemoteException;
 
     /**
      * Método que solicita a adição de um URL à fila de processamento.
@@ -26,12 +25,8 @@ public interface Request extends Remote {
      */
     public void send_request_queue(Client_I c, Message m) throws RemoteException;
 
-    /**
-     * Retorna um painel de administração com informações sobre o sistema.
-     * @return Uma mensagem com informações sobre o sistema.
-     * @throws RemoteException se ocorrer um erro durante a comunicação remota.
-     */
-    public Message adm_painel() throws RemoteException;
+
+    public void request_adm_painel(Client_I c) throws RemoteException;
 
     /**
      * ?????????????????????????.
@@ -61,4 +56,16 @@ public interface Request extends Remote {
      * @throws RemoteException se ocorrer um erro durante a comunicação remota.
      */
     public void barrel_disconnect(Barrel_I barrel) throws RemoteException;
+
+    public void client_connect(Client_I c) throws RemoteException;
+
+    public void client_disconnect(Client_I c) throws RemoteException;
+
+    public void request10(Client_I c, Message m, int indx) throws RemoteException;
+
+    public void print_on_client_10(int indx) throws RemoteException;
+
+   public void links_pointing_to(Client_I c, Message conteudo) throws RemoteException;
+
+    public void answer_pointers(ArrayList<URL_Content> urlsPointingTo) throws RemoteException;
 }

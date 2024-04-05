@@ -19,7 +19,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	private static String NAMING_URL;
 	private static String MULTICAST_ADDRESS;
 	private static int PORT;
-	
+
 
 	public static int numBarrels;
 	public static int id;
@@ -29,7 +29,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		id = num;
 	}
 
-	public void request(String m, int min) throws java.rmi.RemoteException {
+	public void request(String m) throws java.rmi.RemoteException {
 		String[] words = m.split(" ");
 		Urls_list not_found_words = new Urls_list(new ArrayList<>());
 		ArrayList<URL_Content> resultado = new ArrayList<>();
@@ -44,18 +44,18 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 			if(nums != null){									// Nums?
 				for(int num : nums){							// Para cada num
-					for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {	
+					for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
 						if (entry.getValue() == num) {			// Se o value corresponder entao este url ta associado a palavra
 
 							for (Map.Entry<Integer, int[]> entry_l : links.entrySet()) {	// Ver quantos url apontam para este url
 								if(entry_l.getKey() == num){
-									entry.getKey().priority = entry_l.getValue().length;	
+									entry.getKey().priority = entry_l.getValue().length;
 									resultado.add(entry.getKey());
 									break;
 								}
 							}
 
-                        	break;
+							break;
 						}
 					}
 				}
@@ -63,7 +63,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				not_found_words.addUrl(word);
 			}
 		}
-		
+
 
 		if (!resultado.isEmpty()) {
 			if(not_found_words.hasValues())
@@ -71,8 +71,42 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			Conection.answer(resultado);
 		} else {
 			Conection.err_no_matches(new Message("No URLs found for the entire input: " + not_found_words.wordtoString()));
+			Conection.answer(resultado);
 		}
 	}
+
+	@Override
+	public void links_pointing_to(String clientRequest) throws RemoteException {
+
+		int valorRequest = -1;
+		for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
+			URL_Content urlContent = entry.getKey();
+			if (urlContent.url.equals(clientRequest)) {
+				valorRequest = entry.getValue();
+				break;
+			}
+		}
+
+		if (valorRequest == -1) {
+			Conection.err_no_matches(new Message("The URL " + clientRequest + " was not found in the database. Try indexing it first.\n"));
+			return;
+		}
+
+		int[] listaInts = links.get(valorRequest);
+		ArrayList<URL_Content> urlsPointingTo = new ArrayList<>();
+		if (listaInts != null) {
+			for (int i : listaInts) {
+				for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
+					if (entry.getValue() == i) {
+						urlsPointingTo.add(entry.getKey());
+					}
+				}
+			}
+		}
+		Conection.answer_pointers(urlsPointingTo);
+	}
+
+
 
 
 	/*
@@ -80,37 +114,37 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	 */
 
 	public static void printUrls() {
-        System.out.println("\nUrls:\n");
-        for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
-            System.out.println("Title: " + entry.getKey().title);
+		System.out.println("\nUrls:\n");
+		for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
+			System.out.println("Title: " + entry.getKey().title);
 			System.out.println("URL: " + entry.getKey().url);
 			System.out.println("Value: " + entry.getValue());
-        }
-        System.out.println();
-    }
+		}
+		System.out.println();
+	}
 
-    public static void printWordsHM() {
-        System.out.println("\nWords_HM:\n");
-        for (Map.Entry<String, int[]> entry : words_HM.entrySet()) {
-            System.out.print(entry.getKey() + " -> ");
-            for (int urlNum : entry.getValue()) {
-                System.out.print(urlNum + " ");
-            }
-            System.out.println();
-        }
-        System.out.println();
-    }
+	public static void printWordsHM() {
+		System.out.println("\nWords_HM:\n");
+		for (Map.Entry<String, int[]> entry : words_HM.entrySet()) {
+			System.out.print(entry.getKey() + " -> ");
+			for (int urlNum : entry.getValue()) {
+				System.out.print(urlNum + " ");
+			}
+			System.out.println();
+		}
+		System.out.println();
+	}
 
 	public static void printLinks() {
 		System.out.println("\nLINKS:\n");
-        for (Map.Entry<Integer, int[]> entry : links.entrySet()) {
-            System.out.print(entry.getKey() + " -> ");
-            for (int urlNum : entry.getValue()) {
-                System.out.print(urlNum + " ");
-            }
-            System.out.println();
-        }
-        System.out.println();
+		for (Map.Entry<Integer, int[]> entry : links.entrySet()) {
+			System.out.print(entry.getKey() + " -> ");
+			for (int urlNum : entry.getValue()) {
+				System.out.print(urlNum + " ");
+			}
+			System.out.println();
+		}
+		System.out.println();
 	}
 
 	/*
@@ -129,9 +163,9 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			NAMING_URL = f.lookup[0];
 			MULTICAST_ADDRESS = f.Address;
 			PORT = f.Port;
-			
+
 			Conection = (Request) Naming.lookup(NAMING_URL);
-			
+
 			try{
 				numBarrels = Integer.parseInt(args[0]);
 				id = Integer.parseInt(args[1]);
@@ -156,7 +190,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			System.out.println("NotBoundException in GateWay.main: " + e);
 		}
 
-    }
+	}
 
 	static class Barrel_Send_HMs implements Runnable {
 
@@ -179,29 +213,29 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 		public void Mc_HM_Content() throws java.rmi.RemoteException {
 			System.out.println("Synchorizing");
-			
+
 			send_mc_urls();
 			send_mc_words();
 			send_mc_links();
-	
+
 		}
-	
+
 		private void send_mc_urls() {
 			String content = "";
 			MulticastSocket socket = null;
 			byte[] buffer;
 			DatagramPacket packet;
-	
+
 			try{
-	
+
 				synchronized(urls) {
-			
+
 					socket = new MulticastSocket(PORT);
 					socket.setReuseAddress(true);
 					InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
 					socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
-		
-		
+
+
 					for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
 						//System.out.println(entry.getKey() + " " + entry.getValue());
 						Udp_Mc_Packet mc_packet = new Udp_Mc_Packet("Sync_url", entry.getKey().toString() + entry.getValue());
@@ -213,51 +247,51 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 					socket.close();
 				}
-	
+
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-	
+
 		}
-	
+
 		private void send_mc_words() {
 			String content = "";
 			MulticastSocket socket = null;
 			byte[] buffer;
 			DatagramPacket packet;
-	
+
 			try{
-	
-				synchronized(words_HM) {	
-		
+
+				synchronized(words_HM) {
+
 					socket = new MulticastSocket(PORT);
 					socket.setReuseAddress(true);
 					InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
 					socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
-		
-		
+
+
 					for (Map.Entry<String, int[]> entry : words_HM.entrySet()) {
 						//System.out.println(entry.getKey() + " " + entry.getValue());
 						StringBuilder messageBuilder = new StringBuilder();
 						messageBuilder.append(entry.getKey()).append(" ");
-		
+
 						int[] values = entry.getValue();
 						for (int value : values) {
 							messageBuilder.append(value).append(" ");
 						}
-		
+
 						// Remove the last space
 						messageBuilder.deleteCharAt(messageBuilder.length() - 1);
-		
+
 						Udp_Mc_Packet mc_packet = new Udp_Mc_Packet("Sync_word", messageBuilder.toString());
 						buffer = mc_packet.toString().getBytes();
 						packet = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
 						socket.send(packet);
 					}
-		
+
 					socket.close();
 				}
-	
+
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -268,39 +302,39 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			MulticastSocket socket = null;
 			byte[] buffer;
 			DatagramPacket packet;
-	
+
 			try{
-	
-				synchronized(links) {	
-		
+
+				synchronized(links) {
+
 					socket = new MulticastSocket(PORT);
 					socket.setReuseAddress(true);
 					InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
 					socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
-		
-		
+
+
 					for (Map.Entry<Integer, int[]> entry : links.entrySet()) {
 						//System.out.println(entry.getKey() + " " + entry.getValue());
 						StringBuilder messageBuilder = new StringBuilder();
 						messageBuilder.append(entry.getKey()).append(" ");
-		
+
 						int[] values = entry.getValue();
 						for (int value : values) {
 							messageBuilder.append(value).append(" ");
 						}
-		
+
 						// Remove the last space
 						messageBuilder.deleteCharAt(messageBuilder.length() - 1);
-		
+
 						Udp_Mc_Packet mc_packet = new Udp_Mc_Packet("Sync_link", messageBuilder.toString());
 						buffer = mc_packet.toString().getBytes();
 						packet = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
 						socket.send(packet);
 					}
-		
+
 					socket.close();
 				}
-	
+
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -366,7 +400,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				socket.setReuseAddress(true);
 				InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
 				socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
-	
+
 				while(check){
 
 					byte[] buffer = new byte[256*4];
@@ -383,14 +417,14 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 						Update_link_HM(message);
 					//System.out.println(message);
 				}
-	
-	
+
+
 				socket.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-	
+
 		public void Update_word_HM(String m) {
 			String[] aux = m.split("\n");
 			String[] sections = aux[1].split(" ");
@@ -399,7 +433,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			if(sections.length >= 3){
 				String word = sections[0];
 				int[] nums_add = new int[sections.length-1];
-	
+
 				for(int i = 1; i<sections.length; i++){
 					nums_add[i-1] = Integer.parseInt(sections[i]);
 				}
@@ -408,7 +442,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 					if (!words_HM.containsKey(word) || !Arrays.equals(words_HM.get(word), nums_add))
 						words_HM.put(word, nums_add);
 				}
-	
+
 			} else {
 				System.err.println("Incorrect input format: " + m);
 			}
@@ -418,11 +452,11 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			String[] aux = m.split("\n");
 			String[] sections = aux[1].split(" ");
 			//System.out.println("link\n" + m);
-	
+
 			if(sections.length >= 2){
 				int num = Integer.parseInt(sections[0]);
 				int[] nums_add = new int[sections.length-1];
-	
+
 				for(int i = 1; i<sections.length; i++){
 					nums_add[i-1] = Integer.parseInt(sections[i]);
 				}
@@ -431,33 +465,37 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 					if (!links.containsKey(num) || !Arrays.equals(links.get(num), nums_add))
 						links.put(num, nums_add);
 				}
-	
+
 			} else {
 				System.err.println("Incorrect input format: " + m);
 			}
 		}
-		
+
 		private void Update_url_HM(String m) {
 			String[] sections = m.split("\n");
 			URL_Content u;
+			String cit = new String();
 			//System.out.println("url\n" + m);
-			
+
 			if (sections.length >= 3) {
 				String title = sections[1].substring(sections[1].indexOf(":") + 2);
 				String url = sections[2].substring(sections[2].indexOf(":") + 2);
+				if(sections.length >= 4)
+					cit = sections[3];
 				u = new URL_Content(title, url);
+				u.add_citacao(cit);
 				int count = Integer.parseInt(sections[4]);
 
 				synchronized(urls){
 					if(!urls.containsKey(u))
 						urls.put(u, count);
 				}
-	
+
 			} else {
 				System.err.println("Incorrect input format: " + m);
 			}
 		}
-		
+
 	}
 
 	static class Barrel_Function implements Runnable {
@@ -533,6 +571,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			boolean keep = true;
 			URL_Content new_url;
 			int num_aux = 0;
+			int flag = 0;
 
 			try {
 
@@ -560,6 +599,22 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 						if(sections[1].split(" ")[0].equals("Text:")){
 							String textContent = sections[1].substring("Text: ".length());
+
+							if(flag == 0){												// Buscar as primeiras 10 palavras para a citaçao
+								String[] parts = sections[1].split(" ");
+								StringBuilder resultBuilder = new StringBuilder();
+								for (int i = 1; i <= 10 && i < parts.length; i++) {
+									resultBuilder.append(parts[i]);
+									if (i < 10 && i < parts.length - 1) {
+										resultBuilder.append(" ");
+									}
+								}
+								resultBuilder.deleteCharAt(resultBuilder.length() - 1);
+								URL_Content aux = searchByUrl(url);
+								aux.add_citacao(resultBuilder.toString());
+								flag = 1;
+							}
+
 							String[] list = textContent.split("\\s+");
 							insert_words(list, num_aux);
 						}

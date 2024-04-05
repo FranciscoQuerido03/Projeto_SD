@@ -8,6 +8,7 @@ import java.io.Serializable;
 public class URL_Content implements Serializable {
     public String title; // Título da URL
     public String url; // URL
+    public String citacao; // Citação
 
     public int priority;    // Prioridade para cliente
 
@@ -15,11 +16,14 @@ public class URL_Content implements Serializable {
      * Construtor da classe `URL_Content`.
      * @param title O título do URL.
      * @param url O URL.
-     * @param Pub_date A data de publicação.
      */
     public URL_Content(String title, String url) {
         this.title = title;
         this.url = url;
+    }
+
+    public void add_citacao(String s) {
+        this.citacao = s;
     }
 
     public void addUrl(URL_Content u) {
@@ -34,7 +38,8 @@ public class URL_Content implements Serializable {
     @Override
     public String toString() {
         return "Title: " + title + "\n" +
-            "URL: " + url + "\n" ;
+            "URL: " + url + "\n" +
+            citacao + "\n";
             //"Prio: " + priority  + "\n\n";
     }
 

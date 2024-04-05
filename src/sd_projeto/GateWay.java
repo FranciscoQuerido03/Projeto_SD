@@ -6,6 +6,8 @@ import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.*;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -28,6 +30,9 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	private static QueueInterface queue;
 	private static ReentrantLock lock = new ReentrantLock();
 
+	private static HashMap<Client_I, ArrayList<URL_Content>> results10 = new HashMap<>();
+	private static ArrayList<Client_info> clientes;
+
 	/**
 	 * Construtor para criar o Gateway.
 	 * @param f As informações do arquivo de configuração.
@@ -41,6 +46,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		barrels = new Barrel_struct[NUM_BARRELS];
 		Barrel_struct.initialize(barrels, NUM_BARRELS);
 		top_searches = new TopSearches();
+		clientes = new ArrayList<>();
 		queue = (QueueInterface) Naming.lookup(f.lookup[0]);
 	}
 
@@ -55,9 +61,34 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			count = Barrel_struct.remove_barrel(barrels, barrel, count);
 			if (count <= 0)
 				lb = -1;
+			adm_painel();
 		} finally {
 			lock.unlock();
 		}
+	}
+
+	public void client_connect(Client_I c) throws RemoteException {
+		clientes.add(new Client_info(c, false));
+	}
+
+	public void client_disconnect(Client_I c) throws RemoteException {
+		Client_info ci = get_client(c);
+		if(ci != null)
+			clientes.remove(ci);
+	}
+
+	public void request_adm_painel(Client_I c) throws RemoteException {
+		Client_info ci = get_client(c);
+		ci.set_see_console();
+	}
+
+	public Client_info get_client (Client_I c) {
+		for(Client_info ci : clientes){
+			if(ci.c.equals(c)){
+				return ci;
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -73,10 +104,9 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 * Método para enviar solicitações aos barrels remotos.
 	 * @param c O cliente.
 	 * @param m A mensagem com a solicitação.
-	 * @param min Número que define o intervalo de resultados a serem retornados.
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
-	public void send_request_barrels(Client_I c, Message m, int min) throws RemoteException {
+	public void send_request_barrels(Client_I c, Message m) throws RemoteException {
 		lock.lock();
 		try {
 			System.out.println("GateWay: " + m.toString() + " " + count);
@@ -86,11 +116,9 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			if (lb >= 0) {
 				if (lb >= count)
 					lb = 0;
-				//System.out.println("lb " + lb);
-				//System.out.println(barrels[lb].barrel);
-				//barrels[lb].printWordsHM();
+				System.out.println("lb " + lb);
 				long inicio_pedido = System.currentTimeMillis();
-				barrels[lb].barrel.request(client_request.toLowerCase(), min);
+				barrels[lb].barrel.request(client_request.toLowerCase());
 				long fim_pedido = System.currentTimeMillis();
 				barrels[lb].avg_time = (barrels[lb].avg_time + ((fim_pedido - inicio_pedido) / 100)) / 2;
 				lb++;
@@ -101,6 +129,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			lock.unlock();
 		}
 	}
+
 
 	/**
 	 * Método para enviar solicitações à queue.
@@ -127,16 +156,16 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		if(count > 0){
 			System.out.println("Sync Needed Cuh");
 			try (MulticastSocket socket = new MulticastSocket(4321)) {
-                String message = "Sync";
-                byte[] buffer = message.getBytes();
+				String message = "Sync";
+				byte[] buffer = message.getBytes();
 
-                InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
+				InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
 				socket.joinGroup(new InetSocketAddress(group, 0), NetworkInterface.getByIndex(0));
 
 				DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
 				socket.send(packet);
 
-            } catch (IOException e) {
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
@@ -144,6 +173,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		if(count < NUM_BARRELS){
 			Barrel_struct.add_barrel(barrels, barrel, id, count);
 			count++;
+			adm_painel();
 		}
 	}
 
@@ -152,24 +182,132 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 * @param m A lista de URLs.
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
-	public void answer(ArrayList<URL_Content> m) throws RemoteException{
-		//System.out.println(m.toString());
-		client.print_on_client(m);
+
+	public void answer(ArrayList<URL_Content> m) throws RemoteException {
+		if (!m.isEmpty()) {
+			// Organizar a lista por prioridade
+			m.sort(Comparator.comparingInt(a -> a.priority));
+			// Adicionar a lista organizada ao HashMap
+			results10.put(client, m);
+		}
+		else {
+			results10.put(client, new ArrayList<>());
+		}
 	}
+
+
+	/**
+	 * @param c
+	 * @param m
+	 * @param indx
+	 * @throws RemoteException
+	 */
+	@Override
+	public void request10(Client_I c, Message m, int indx) throws RemoteException {
+		if (indx < 0) {
+			results10.remove(c);
+			return;
+		}
+		client = c;
+		// Verifica se há resultados para o cliente
+		if (results10.containsKey(client)) {
+			print_on_client_10(indx);
+		} else {
+			// Se não houver resultados para o cliente, envia uma solicitação
+			send_request_barrels(c, m);
+			print_on_client_10(indx);
+		}
+	}
+
+	@Override
+	public void print_on_client_10(int indx) throws java.rmi.RemoteException {
+
+		ArrayList<URL_Content> contentToSend = new ArrayList<>();
+
+		if (!results10.containsKey(client)) {
+			return;
+		}
+
+		ArrayList<URL_Content> results = results10.get(client);
+
+		if (results.isEmpty()) {
+			return;
+		}
+
+		int startIndex = indx * 10;
+		int endIndex = Math.min(startIndex + 10, results.size()); // Garante que não ultrapasse o tamanho da lista
+
+		// Adiciona os 10 conteúdos à lista a ser enviada
+		for (int i = startIndex; i < endIndex; i++) {
+			contentToSend.add(results.get(i));
+		}
+
+		// Envie o ArrayList contentToSend para o cliente
+		client.print_on_client(contentToSend);
+	}
+
+	/**
+	 * @param conteudo
+	 * @throws RemoteException
+	 */
+
+	@Override
+	public void links_pointing_to(Client_I c, Message conteudo) throws RemoteException{
+		client = c;
+		client_request = conteudo.toString().trim();
+		send_request_barrels_pointers();
+	}
+
+	/**
+	 * @param urlsPointingTo
+	 */
+	@Override
+	public void answer_pointers(ArrayList<URL_Content> urlsPointingTo) throws RemoteException {
+		client.print_on_client(urlsPointingTo);
+	}
+
+	private void send_request_barrels_pointers() throws RemoteException {
+		lock.lock();
+		try {
+			if (lb >= 0) {
+				if (lb >= count)
+					lb = 0;
+				System.out.println("lb " + lb);
+				long inicio_pedido = System.currentTimeMillis();
+				barrels[lb].barrel.links_pointing_to(client_request);
+				long fim_pedido = System.currentTimeMillis();
+				barrels[lb].avg_time = (barrels[lb].avg_time + ((fim_pedido - inicio_pedido) / 100)) / 2;
+				lb++;
+			} else {
+				client.print_err_2_client(new Message(Erro_Indisponibilidade));
+			}
+		} finally {
+			lock.unlock();
+		}
+	}
+
 
 	/**
 	 * Método para fornecer o painel de administração do sistema ao cliente.
 	 * @return Uma mensagem com informações sobre o sistema.
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
-	public Message adm_painel() throws RemoteException {
-		Message m = new Message("");
-		m.addText("Online Servers: " + count + "\n");
-		m.addText("Top 10 most common searches: \n");
-		m.addText(top_searches.getTop10());
-		m.addText("Average response time: \n");
-		m.addText(Barrel_struct.get_avg_times(barrels, count));
-		return m;
+	public void adm_painel() throws RemoteException {
+		
+		for(Client_info ci : clientes){
+			if(ci.see_console){
+				Message m = new Message("");
+				m.addText("============< ADM CONSOLE >============\n");
+				m.addText("Online Servers: " + count + "\n");
+				m.addText("Top 10 most common searches: \n");
+				m.addText(top_searches.getTop10());
+				m.addText("Average response time: \n");
+				m.addText(Barrel_struct.get_avg_times(barrels, count));
+				m.addText("============< ----------- >============\n");
+
+				ci.c.print_adm_console_on_client(m);
+			}
+		}
 	}
 
 	/**
