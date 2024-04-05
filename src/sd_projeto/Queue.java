@@ -16,6 +16,9 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
     private Deque<String> queue;
     private int threadNumber = 0;
 
+    private static BloomFilter<String>  bloomFilter;
+
+
     private static String NAMING_DOWNLOADER;
     private static String NAMING_GATEWAY;
 
@@ -41,7 +44,11 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
      */
     @Override
     public synchronized String getFirst() throws RemoteException {
-        return queue.pollFirst();
+        String url = queue.pollFirst();
+        if (url != null) {
+            bloomFilter.add(url);
+        }
+        return url;
     }
 
     /**
@@ -61,7 +68,9 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
      */
     @Override
     public synchronized void addFirst(String url) throws RemoteException {
-        queue.addFirst(url);
+        if (!bloomFilter.contains(url)) {
+            queue.addFirst(url);
+        }
     }
 
     /**
@@ -71,7 +80,9 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
      */
     @Override
     public synchronized void addLast(String url) throws RemoteException {
-        queue.addLast(url);
+        if (!bloomFilter.contains(url)) {
+            queue.addLast(url);
+        }
     }
 
     /**
@@ -80,8 +91,17 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
     public static void main(String[] args) {
         try {
             Queue q = new Queue();
+
             LocateRegistry.createRegistry(1096).rebind(NAMING_DOWNLOADER, q);
             LocateRegistry.createRegistry(1097).rebind(NAMING_GATEWAY, q);
+            /*
+             Inicializar o BloomFilter
+             100 000 000 elementos esperados
+             0.01% probabilidade de falsos positivos
+             fonte:https://krisives.github.io/bloom-calculator/
+            */
+            bloomFilter = new BloomFilter<>(1917011676, s -> s.hashCode(), s -> s.hashCode() * s.length());
+
             System.out.println("Queue ready.");
         } catch (RemoteException re) {
             System.out.println("Exception in GateWay.main: " + re);

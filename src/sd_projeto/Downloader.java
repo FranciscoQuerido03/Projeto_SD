@@ -17,6 +17,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.lang.Integer.parseInt;
+
 
 public class Downloader extends Thread {
     private static String MULTICAST_ADDRESS;
@@ -25,7 +27,6 @@ public class Downloader extends Thread {
     private static InetAddress group;
     private static int NUM;
     private static QueueInterface queue;
-    private static BloomFilter<String>  bloomFilter;
     private static final Object lock = new Object();
 
     private static final List<String> stopWords = Arrays.asList(
@@ -46,12 +47,12 @@ public class Downloader extends Thread {
             "fôssemos", "fossem", "for", "formos", "forem", "serei", "será", "seremos", "serão", "seria", "seríamos", "seriam",
             "tenho", "tem", "temos", "tém", "tinha", "tínhamos", "tinham", "tive", "teve", "tivemos", "tiveram", "tivera",
             "tivéramos", "tenha", "tenhamos", "tenham", "tivesse", "tivéssemos", "tivessem", "tiver", "tivermos", "tiverem",
-            "terei", "terá", "teremos", "terão", "teria", "teríamos", "teriam", "?", "!", "-", " ", "\n"
+            "terei", "terá", "teremos", "terão", "teria", "teríamos", "teriam", "?", "!", "-", " ", "–", ":", ";", ",", ".", "|"
     );
 
 
-    public Downloader(int downloaderNumber) throws RemoteException {
-        setName("Downloader " + downloaderNumber);
+    public Downloader() throws RemoteException {
+        setName("Downloader ");
         start();
     }
 
@@ -81,19 +82,8 @@ public class Downloader extends Thread {
         queue = (QueueInterface) Naming.lookup(NAMING);
         group = InetAddress.getByName(MULTICAST_ADDRESS);
 
-        /*
-         Inicializar o BloomFilter
-         100 000 000 elementos esperados
-         0.01% probabilidade de falsos positivos
-         fonte:https://krisives.github.io/bloom-calculator/
-         */
-        bloomFilter = new BloomFilter<>(1917011676, s -> s.hashCode(), s -> s.hashCode() * s.length());
-        //bloomFilter.add("http://www.google.com");
-
-        for (int i = 0; i < NUM; i++) {
-            new Downloader(i);
-            System.out.println("Downloader " + i + " ready.");
-        }
+        new Downloader();
+        System.out.println("Downloader ready.");
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             for (Thread t : Thread.getAllStackTraces().keySet()) {
@@ -113,9 +103,7 @@ public class Downloader extends Thread {
         try {
             while (true) {
                 url = queue.getFirst();
-                if (url != null && correctURL(url) && !bloomFilter.contains(url)) {
-                    bloomFilter.add(url);
-
+                if (url != null && correctURL(url)) {
                     try {
                         System.out.println("Processing URL...");
                         MulticastSocket socket = new MulticastSocket();
@@ -124,10 +112,7 @@ public class Downloader extends Thread {
                         // Extrair título do documento
                         String title = doc.title();
 
-                        // Extrair data de publicação, se disponível
-                        String publicationDate = doc.select("date").text();
-
-                        // Extrair to_do o texto do HTML
+                        // Extrair todo o texto do HTML
                         String tokens = doc.text();
                         tokens = removeStopWords(tokens);
 
@@ -138,56 +123,65 @@ public class Downloader extends Thread {
                         for (Element link : links) {
                             String linkUrl = link.attr("abs:href");
                             if (correctURL(linkUrl)) {
-                                linksText.append(linkUrl).append(" "); // todos os links so numa string
-
-                                flag = bloomFilter.contains(linkUrl);
-
-                                if (!flag)
-                                    //System.out.println("Added to queue: " + linkUrl);
-                                    queue.addLast(linkUrl); // adicionar os links na queue
+                                linksText.append(linkUrl).append(" "); // todos os links em uma string
+                                queue.addLast(linkUrl); // adicionar os links na fila
                             }
                         }
 
-                        if (linksText.length() > 0) {
-                            linksText.deleteCharAt(linksText.length() - 1);
+                        // mensagens
+                        String header = "Data: " + url + "\n";
+                        String message1 = header + "Title: " + title;
+                        String message2 = header + "Text: ";
+                        String message3 = header + "Links: ";
+                        String endMessage = header + "END\n";
+
+                        // Enviar título
+                        byte[] buffer1 = message1.getBytes();
+                        DatagramPacket packet1 = new DatagramPacket(buffer1, buffer1.length, group, PORT);
+                        socket.send(packet1);
+
+                        // Enviar texto em partes de 50 palavras
+                        String[] words = tokens.split("\\s+");
+                        for (int i = 0; i < words.length; i += 50) {
+                            StringBuilder textPart = new StringBuilder();
+                            for (int j = i; j < Math.min(i + 50, words.length); j++) {
+                                textPart.append(words[j]).append(" ");
+                            }
+                            byte[] buffer2 = (message2 + textPart + "\n").getBytes();
+                            DatagramPacket packet2 = new DatagramPacket(buffer2, buffer2.length, group, PORT);
+                            socket.send(packet2);
                         }
 
-                        // mensagem multicast
-                        String message1 = "Data" + "\nURL: " + url + "\nTitle: " + title + "\nPublication Date: " + publicationDate + "\n";
-                        String message2 = "Text: " + tokens + "\n";
-                        String message3 = "Links: " + linksText;
-
-                        // Envie a mensagem multicast
-                        byte[] buffer = message1.getBytes();
-                        byte[] buffer2 = message2.getBytes();
-                        byte[] buffer3 = message3.getBytes();
-                        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
-                        DatagramPacket packet2 = new DatagramPacket(buffer2, buffer2.length, group, PORT);
-                        DatagramPacket packet3 = new DatagramPacket(buffer3, buffer3.length, group, PORT);
-
-                        synchronized(lock){
-                            socket.send(packet);
-                            socket.send(packet2);
+                        // Enviar links em partes de 10
+                        String[] linkUrls = linksText.toString().split("\\s+");
+                        for (int i = 0; i < linkUrls.length; i += 10) {
+                            StringBuilder linksPart = new StringBuilder();
+                            for (int j = i; j < Math.min(i + 10, linkUrls.length); j++) {
+                                linksPart.append(linkUrls[j]).append(" ");
+                            }
+                            byte[] buffer3 = (message3 + linksPart + "\n").getBytes();
+                            DatagramPacket packet3 = new DatagramPacket(buffer3, buffer3.length, group, PORT);
                             socket.send(packet3);
                         }
 
-                        //System.out.println("Sent message: \n" + message1);
-                        //System.out.println("Sent message: \n" + message2);
-                        //System.out.println("Sent message: \n" + message3);
+                        // Enviar mensagem final
+                        byte[] buffer4 = endMessage.getBytes();
+                        DatagramPacket packet4 = new DatagramPacket(buffer4, buffer4.length, group, PORT);
+                        socket.send(packet4);
+
+
+ //                       System.out.println("Sent message: \n" + endMessage);
 
                         url = null;
-
 
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
                 } else {
-//                    if (url != null)
-//                        System.out.println("Thread("+this.threadId()+")"+" URL already visited: " + url);
+                    sleep(1000);
                 }
             }
-        } catch (RemoteException e) {
+        } catch (InterruptedException | RemoteException e) {
             e.printStackTrace();
         }
     }
@@ -198,8 +192,7 @@ public class Downloader extends Thread {
             URLConnection connection = testURL.openConnection();
 
             // Verificar se a conexão é do tipo HttpURLConnection
-            if (connection instanceof HttpURLConnection) {
-                HttpURLConnection conn = (HttpURLConnection) connection;
+            if (connection instanceof HttpURLConnection conn) {
                 conn.setRequestMethod("HEAD"); // Apenas cabeçalhos, sem baixar o conteúdo
                 int responseCode = conn.getResponseCode();
                 return (responseCode == HttpURLConnection.HTTP_OK);
