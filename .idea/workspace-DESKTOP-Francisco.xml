@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ArtifactsWorkspaceSettings">
+    <artifacts-to-build>
+      <artifact name="Projeto:jar" />
+    </artifacts-to-build>
+  </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="b6c1dc56-fde7-4044-b690-22ae4ee95d98" name="Changes" comment="Downloaders correct implementation Beta" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;FranciscoQuerido03&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">
+    <option name="selectedUrlAndAccountId">
+      <UrlAndAccount>
+        <option name="accountId" value="01e36455-438c-47a6-8997-f7f6b8cde8c6" />
+        <option name="url" value="https://github.com/FranciscoQuerido03/Projeto_SD.git" />
+      </UrlAndAccount>
+    </option>
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
+  <component name="ProjectId" id="2d5KYyagEJmExgFCCFVfPtakZHm" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "Application.AdminPage.executor": "Run",
+    "Application.Barrels.executor": "Run",
+    "Application.Client.executor": "Run",
+    "Application.Downloader.executor": "Run",
+    "Application.Downloaders.executor": "Run",
+    "Application.GateWay.executor": "Run",
+    "Application.IndexBarrels.executor": "Run",
+    "Application.Main.executor": "Run",
+    "Application.Mini.executor": "Run",
+    "Application.Queue.executor": "Run",
+    "Application.Unnamed.executor": "Run",
+    "Batch.compile_run.executor": "Run",
+    "Downloaded.Files.Path.Enabled": "false",
+    "Repository.Attach.Annotations": "false",
+    "Repository.Attach.JavaDocs": "false",
+    "Repository.Attach.Sources": "false",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Shell Script.run.bash.executor": "Run",
+    "git-widget-placeholder": "Francisco",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/Francisco/OneDrive/Ambiente de Trabalho/Faculdade/3 ANO/2 Semestre/SD/Projeto_SD",
+    "onboarding.tips.debug.path": "C:/Users/franc/OneDrive/Ambiente de Trabalho/Faculdade/3 ANO/2 Semestre/SD/Projeto/src/Main.java",
+    "project.structure.last.edited": "Global Libraries",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "reference.settings.project.maven.importing",
+    "settings.editor.splitter.proportion": "0.31039137"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Francisco\OneDrive\Ambiente de Trabalho\Faculdade\3 ANO\2 Semestre\SD\Projeto_SD\src\sd_projeto" />
+      <recent name="C:\Users\Francisco\OneDrive\Ambiente de Trabalho\Faculdade\3 ANO\2 Semestre\SD\Projeto_SD\src" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.Downloaders">
+    <configuration name="Client" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="sd_projeto.Client" />
+      <module name="Projeto" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Client" type="Application" factoryName="Application" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="sd_projeto.Client" />
+      <module name="Projeto" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Downloaders" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="sd_projeto.Downloader" />
+      <module name="Projeto" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="GateWay" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="sd_projeto.GateWay" />
+      <module name="Projeto" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="IndexBarrels" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="sd_projeto.IndexBarrels" />
+      <module name="Projeto" />
+      <option name="PROGRAM_PARAMETERS" value="5 1" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Queue" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="sd_projeto.Queue" />
+      <module name="Projeto" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Application.Client" />
+      <item itemvalue="Application.Queue" />
+      <item itemvalue="Application.GateWay" />
+      <item itemvalue="Application.IndexBarrels" />
+      <item itemvalue="Application.Downloaders" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Queue" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="jdk-21.0.2-openjdk-21.0.2-4caba194b151-4f524021" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="b6c1dc56-fde7-4044-b690-22ae4ee95d98" name="Changes" comment="" />
+      <created>1709292553342</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1709292553342</updated>
+    </task>
+    <task id="LOCAL-00001" summary="Initial Commit">
+      <option name="closed" value="true" />
+      <created>1709997510949</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1709997510949</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Downloaders First Version">
+      <option name="closed" value="true" />
+      <created>1710858223655</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1710858223655</updated>
+    </task>
+    <task id="LOCAL-00003" summary="First Integration w/ Barrels">
+      <option name="closed" value="true" />
+      <created>1710902046937</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1710902046937</updated>
+    </task>
+    <task id="LOCAL-00004" summary="First Integration w/ Barrels">
+      <option name="closed" value="true" />
+      <created>1710902169663</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1710902169663</updated>
+    </task>
+    <task id="LOCAL-00005" summary="First Integration w/ Barrels">
+      <option name="closed" value="true" />
+      <created>1710902175843</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1710902175843</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Barrels Config File">
+      <option name="closed" value="true" />
+      <created>1710981270724</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1710981270724</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Queue implementation">
+      <option name="closed" value="true" />
+      <created>1711565361007</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1711565361007</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Esqueleto inicial queue-downloader">
+      <option name="closed" value="true" />
+      <created>1711680670100</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1711680670100</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Downloader thread safe and bloom filter done">
+      <option name="closed" value="true" />
+      <created>1711748525724</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1711748525724</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Downloader thread safe and bloom filter done v2">
+      <option name="closed" value="true" />
+      <created>1711753842561</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1711753842561</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Gateway indexa e pesquisa">
+      <option name="closed" value="true" />
+      <created>1711819906684</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1711819906684</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Downloaders correct implementation Beta">
+      <option name="closed" value="true" />
+      <created>1712164398304</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1712164398304</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <MESSAGE value="Initial Commit" />
+    <MESSAGE value="Downloaders First Version" />
+    <MESSAGE value="First Integration w/ Barrels" />
+    <MESSAGE value="Barrels Config File" />
+    <MESSAGE value="Queue implementation" />
+    <MESSAGE value="Esqueleto inicial queue-downloader" />
+    <MESSAGE value="Downloader thread safe and bloom filter done" />
+    <MESSAGE value="Downloader thread safe and bloom filter done v2" />
+    <MESSAGE value="Gateway indexa e pesquisa" />
+    <MESSAGE value="Downloaders correct implementation Beta" />
+    <option name="LAST_COMMIT_MESSAGE" value="Downloaders correct implementation Beta" />
+  </component>
+</project>

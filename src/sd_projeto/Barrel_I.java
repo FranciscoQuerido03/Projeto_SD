@@ -2,12 +2,15 @@ package sd_projeto;
 
 import java.rmi.*;
 
+/**
+ * Interface remota que define métodos para interagir com um barrel.
+ */
 public interface Barrel_I extends Remote {
-	public void request(String s) throws java.rmi.RemoteException;
-
-	/*
-	 * Debug Functions
+	/**
+	 * Método que solicita a um barrel a pesquisa de um determinado conjunto de palarvas.
+	 * @param s Palavras a serem pesquisadas.
+	 * @param min Número que define o intervalo de resultados a serem retornados.
+	 * @throws java.rmi.RemoteException se ocorrer um erro durante a execução remota.
 	 */
-	public void printUrls() throws java.rmi.RemoteException;
-	public void printWordsHM() throws java.rmi.RemoteException;
+	public void request(String s, int min) throws java.rmi.RemoteException;
 }
