@@ -105,7 +105,7 @@ public class Downloader extends Thread {
                 url = queue.getFirst();
                 if (url != null && correctURL(url)) {
                     try {
-                        System.out.println("Processing URL...");
+                        System.out.println("Processing URL..." + url);
                         MulticastSocket socket = new MulticastSocket();
                         Document doc = Jsoup.connect(url).get();
 
@@ -138,14 +138,14 @@ public class Downloader extends Thread {
 
                         //Enviar start message
                         byte[] buf = startMessage.getBytes();
-                        System.out.println(startMessage);
+                        //System.out.println(startMessage);
                         DatagramPacket pack = new DatagramPacket(buf, buf.length, group, PORT);
                         socket.send(pack);
                         sleep(1000);
 
                         // Enviar título
                         byte[] buffer1 = message1.getBytes();
-                        System.out.println(message1);
+                        //System.out.println(message1);
                         DatagramPacket packet1 = new DatagramPacket(buffer1, buffer1.length, group, PORT);
                         socket.send(packet1);
 
@@ -157,7 +157,7 @@ public class Downloader extends Thread {
                                 textPart.append(words[j]).append(" ");
                             }
                             byte[] buffer2 = (message2 + textPart + "\n").getBytes();
-                            System.out.println(message2 + textPart + "\n");
+                            //System.out.println(message2 + textPart + "\n");
                             DatagramPacket packet2 = new DatagramPacket(buffer2, buffer2.length, group, PORT);
                             socket.send(packet2);
                         }
@@ -170,7 +170,7 @@ public class Downloader extends Thread {
                                 linksPart.append(linkUrls[j]).append(" ");
                             }
                             byte[] buffer3 = (message3 + linksPart + "\n").getBytes();
-                            System.out.println(message3 + linksPart + "\n");
+                            //System.out.println(message3 + linksPart + "\n");
                             DatagramPacket packet3 = new DatagramPacket(buffer3, buffer3.length, group, PORT);
                             socket.send(packet3);
                         }
@@ -179,7 +179,7 @@ public class Downloader extends Thread {
 
                         // Enviar mensagem final
                         byte[] buffer4 = endMessage.getBytes();
-                        System.out.println(endMessage);
+                        //System.out.println(endMessage);
                         DatagramPacket packet4 = new DatagramPacket(buffer4, buffer4.length, group, PORT);
                         socket.send(packet4);
 
