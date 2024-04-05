@@ -60,4 +60,9 @@ public interface Request extends Remote {
      * @throws RemoteException se ocorrer um erro durante a comunicação remota.
      */
     public void barrel_disconnect(Barrel_I barrel) throws RemoteException;
+
+    public void request10(Client_I c, Message m, int indx) throws RemoteException;
+
+    public void print_on_client_10(int indx) throws RemoteException;
+
 }

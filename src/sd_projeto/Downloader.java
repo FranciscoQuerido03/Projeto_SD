@@ -13,6 +13,11 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static java.lang.Integer.parseInt;
 
 
 public class Downloader extends Thread {
@@ -22,7 +27,6 @@ public class Downloader extends Thread {
     private static InetAddress group;
     private static int NUM;
     private static QueueInterface queue;
-    private static BloomFilter<String>  bloomFilter;
     private static final Object lock = new Object();
 
     private static final List<String> stopWords = Arrays.asList(
@@ -43,7 +47,7 @@ public class Downloader extends Thread {
             "fôssemos", "fossem", "for", "formos", "forem", "serei", "será", "seremos", "serão", "seria", "seríamos", "seriam",
             "tenho", "tem", "temos", "tém", "tinha", "tínhamos", "tinham", "tive", "teve", "tivemos", "tiveram", "tivera",
             "tivéramos", "tenha", "tenhamos", "tenham", "tivesse", "tivéssemos", "tivessem", "tiver", "tivermos", "tiverem",
-            "terei", "terá", "teremos", "terão", "teria", "teríamos", "teriam", "?", "!", "-", " ", "–", ":", ";", ",", "."
+            "terei", "terá", "teremos", "terão", "teria", "teríamos", "teriam", "?", "!", "-", " ", "–", ":", ";", ",", ".", "|"
     );
 
 
@@ -65,6 +69,31 @@ public class Downloader extends Thread {
     }
 
 
+    public static void main(String[] args) throws RemoteException, NotBoundException, UnknownHostException, MalformedURLException {
+
+        File_Infos f = new File_Infos();
+        f.get_data("Downloader");
+
+        MULTICAST_ADDRESS = f.Address;
+        PORT = f.Port;
+        NUM = f.NUM_BARRELS;
+        NAMING = f.lookup[0];
+
+        queue = (QueueInterface) Naming.lookup(NAMING);
+        group = InetAddress.getByName(MULTICAST_ADDRESS);
+
+        new Downloader();
+        System.out.println("Downloader ready.");
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            for (Thread t : Thread.getAllStackTraces().keySet()) {
+                if (t.getName().startsWith("Downloader")) {
+                    System.out.println(t + "Ending");
+                    t.interrupt();
+                }
+            }
+        }));
+    }
 
     @Override
     public void run() {
@@ -100,14 +129,23 @@ public class Downloader extends Thread {
                         }
 
                         // mensagens
+                        String startMessage = "Data_New: " + url;
                         String header = "Data: " + url + "\n";
                         String message1 = header + "Title: " + title;
                         String message2 = header + "Text: ";
                         String message3 = header + "Links: ";
-                        String endMessage = header + "END\n";
+                        String endMessage = header + "END";
+
+                        //Enviar start message
+                        byte[] buf = startMessage.getBytes();
+                        System.out.println(startMessage);
+                        DatagramPacket pack = new DatagramPacket(buf, buf.length, group, PORT);
+                        socket.send(pack);
+                        sleep(1000);
 
                         // Enviar título
                         byte[] buffer1 = message1.getBytes();
+                        System.out.println(message1);
                         DatagramPacket packet1 = new DatagramPacket(buffer1, buffer1.length, group, PORT);
                         socket.send(packet1);
 
@@ -119,6 +157,7 @@ public class Downloader extends Thread {
                                 textPart.append(words[j]).append(" ");
                             }
                             byte[] buffer2 = (message2 + textPart + "\n").getBytes();
+                            System.out.println(message2 + textPart + "\n");
                             DatagramPacket packet2 = new DatagramPacket(buffer2, buffer2.length, group, PORT);
                             socket.send(packet2);
                         }
@@ -131,17 +170,21 @@ public class Downloader extends Thread {
                                 linksPart.append(linkUrls[j]).append(" ");
                             }
                             byte[] buffer3 = (message3 + linksPart + "\n").getBytes();
+                            System.out.println(message3 + linksPart + "\n");
                             DatagramPacket packet3 = new DatagramPacket(buffer3, buffer3.length, group, PORT);
                             socket.send(packet3);
                         }
 
+                        sleep(1000);
+
                         // Enviar mensagem final
                         byte[] buffer4 = endMessage.getBytes();
+                        System.out.println(endMessage);
                         DatagramPacket packet4 = new DatagramPacket(buffer4, buffer4.length, group, PORT);
                         socket.send(packet4);
 
 
-                       System.out.println("Sent message");
+                        //                       System.out.println("Sent message: \n" + endMessage);
 
                         url = null;
 
@@ -158,30 +201,9 @@ public class Downloader extends Thread {
     private boolean correctURL(String url) {
         return url.startsWith("http://") || url.startsWith("https://");
     }
-    public static void main(String[] args) throws RemoteException, NotBoundException, UnknownHostException, MalformedURLException {
 
-        File_Infos f = new File_Infos();
-        f.get_data("Downloader");
 
-        MULTICAST_ADDRESS = f.Address;
-        PORT = f.Port;
-        NUM = f.NUM_BARRELS;
-        NAMING = f.lookup[0];
-
-        queue = (QueueInterface) Naming.lookup(NAMING);
-        group = InetAddress.getByName(MULTICAST_ADDRESS);
-
-        new Downloader();
-        System.out.println("Downloader ready.");
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            for (Thread t : Thread.getAllStackTraces().keySet()) {
-                if (t.getName().startsWith("Downloader")) {
-                    System.out.println(t + "Ending");
-                    t.interrupt();
-                }
-            }
-        }));
+    private static void print(String msg, Object... args) {
+        System.out.printf((msg) + "%n", args);
     }
-
 }
