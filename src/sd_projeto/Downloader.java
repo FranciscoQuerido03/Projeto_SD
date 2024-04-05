@@ -30,8 +30,8 @@ public class Downloader extends Thread {
     private static final Object lock = new Object();
 
     private static final List<String> stopWords = Arrays.asList(
-            "de", "a", "o", "que", "e", "do", "da", "em", "um", "para", "é", "com", "não", "uma", "os", "no", "se",
-            "na", "por", "mais", "as", "dos", "como", "mas", "foi", "ao", "ele", "das", "tem", "à", "seu", "sua", "ou",
+            "de", "que", "do", "da", "em", "um", "para", "com", "não", "uma", "os", "no", "se",
+            "na", "por", "mais", "as", "dos", "como", "mas", "foi", "ao", "ele", "das", "tem", "seu", "sua", "ou",
             "ser", "quando", "muito", "há", "nos", "já", "está", "eu", "também", "só", "pelo", "pela", "até", "isso",
             "ela", "entre", "era", "depois", "sem", "mesmo", "aos", "ter", "seus", "quem", "nas", "me", "esse", "eles",
             "estão", "você", "tinha", "foram", "essa", "num", "nem", "suas", "meu", "às", "minha", "têm", "numa", "pelos",
@@ -47,7 +47,7 @@ public class Downloader extends Thread {
             "fôssemos", "fossem", "for", "formos", "forem", "serei", "será", "seremos", "serão", "seria", "seríamos", "seriam",
             "tenho", "tem", "temos", "tém", "tinha", "tínhamos", "tinham", "tive", "teve", "tivemos", "tiveram", "tivera",
             "tivéramos", "tenha", "tenhamos", "tenham", "tivesse", "tivéssemos", "tivessem", "tiver", "tivermos", "tiverem",
-            "terei", "terá", "teremos", "terão", "teria", "teríamos", "teriam", "?", "!", "-", " ", "–", ":", ";", ",", ".", "|"
+            "terei", "terá", "teremos", "terão", "teria", "teríamos", "teriam"
     );
 
 
@@ -58,11 +58,12 @@ public class Downloader extends Thread {
 
     // Função para remover as stopwords de um texto
     private static String removeStopWords(String text) {
-        String[] words = text.split("\\s+");
+        String[] words = text.split("[\\s,.():;|_!?<>«»\"\'-/]+");
         List<String> filteredWords = new ArrayList<>();
         for (String word : words) {
             if (!stopWords.contains(word.toLowerCase())) {
-                filteredWords.add(word);
+                if(word.length() > 2)
+                    filteredWords.add(word);         
             }
         }
         return String.join(" ", filteredWords);

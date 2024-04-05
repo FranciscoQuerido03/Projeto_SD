@@ -63,6 +63,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			count = Barrel_struct.remove_barrel(barrels, barrel, count);
 			if (count <= 0)
 				lb = -1;
+			adm_painel();
 		} finally {
 			lock.unlock();
 		}

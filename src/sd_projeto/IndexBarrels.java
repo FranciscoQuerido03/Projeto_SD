@@ -534,6 +534,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			boolean keep = true;
 			URL_Content new_url;
 			int num_aux = 0;
+			int flag = 0;
 
 			try {
 
@@ -561,6 +562,22 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 						if(sections[1].split(" ")[0].equals("Text:")){
 							String textContent = sections[1].substring("Text: ".length());
+
+							if(flag == 0){												// Buscar as primeiras 10 palavras para a citaçao
+								String[] parts = sections[1].split(" ");
+								StringBuilder resultBuilder = new StringBuilder();
+								for (int i = 1; i <= 10 && i < parts.length; i++) {
+									resultBuilder.append(parts[i]);
+									if (i < 10 && i < parts.length - 1) {
+										resultBuilder.append(" ");
+									}
+								}
+								resultBuilder.deleteCharAt(resultBuilder.length() - 1);
+								URL_Content aux = searchByUrl(url);
+								aux.add_citacao(resultBuilder.toString());
+								flag = 1;
+							}
+
 							String[] list = textContent.split("\\s+");
 							insert_words(list, num_aux);
 						}
