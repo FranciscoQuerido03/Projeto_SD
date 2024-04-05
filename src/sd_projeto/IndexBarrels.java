@@ -75,6 +75,39 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		}
 	}
 
+	@Override
+	public void links_pointing_to(String clientRequest) throws RemoteException {
+
+		int valorRequest = -1;
+		for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
+			URL_Content urlContent = entry.getKey();
+			if (urlContent.url.equals(clientRequest)) {
+				valorRequest = entry.getValue();
+				break;
+			}
+		}
+
+		if (valorRequest == -1) {
+			Conection.err_no_matches(new Message("The URL " + clientRequest + " was not found in the database. Try indexing it first.\n"));
+			return;
+		}
+
+		int[] listaInts = links.get(valorRequest);
+		ArrayList<URL_Content> urlsPointingTo = new ArrayList<>();
+		if (listaInts != null) {
+			for (int i : listaInts) {
+				for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
+					if (entry.getValue() == i) {
+						urlsPointingTo.add(entry.getKey());
+					}
+				}
+			}
+		}
+		Conection.answer_pointers(urlsPointingTo);
+	}
+
+
+
 
 	/*
 	 * 	<Debug Functions>

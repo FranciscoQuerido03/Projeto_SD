@@ -67,11 +67,13 @@ public class Client extends UnicastRemoteObject implements Client_I {
 			Request Conection = (Request) Naming.lookup(NAMING);
 			while(keepItgoin){
 
-				System.out.println("\nSelecione uma opcao:");
+				System.out.println("\nSelecione uma opção:");
 				System.out.println("[1] search <search query>");
 				System.out.println("[2] index <url>");
-				System.out.println("[3] stats");
-				System.out.println("[4] exit\n");
+				System.out.println("[3] Links pointing to <url>");
+				System.out.println("[4] stats");
+				System.out.println("[5] exit\n");
+
 
 				String str = scanner.nextLine();
 
@@ -82,20 +84,26 @@ public class Client extends UnicastRemoteObject implements Client_I {
 
 				switch (parts[0]) {
 					case "1":
-						System.out.println("\nA pesquisar por " + conteudo + "...\n");
+						System.out.println("\nSearching " + conteudo + "...\n");
 						searchBarrels(c, Conection, conteudo);
 						break;
 					case "2":
 						if(checkUrl(conteudo)) {
-							System.out.println("\nA indexar " + conteudo + "...\n");
+							System.out.println("\nIndexing " + conteudo + "...\n");
 							Conection.send_request_queue(c, conteudo);
 						}
 						break;
 					case "3":
+						if(checkUrl(conteudo)) {
+							System.out.println("\nSearching...");
+							searchPointers(c, Conection, conteudo);
+						}
+						break;
+					case "4":
 						Message response = Conection.adm_painel();
 						System.out.println("\n" + response.toString());
 						break;
-					case "4":
+					case "5":
 						System.out.println("Terminado");
 						scanner.close();
 						UnicastRemoteObject.unexportObject(c, true);
@@ -115,6 +123,19 @@ public class Client extends UnicastRemoteObject implements Client_I {
 			System.out.println("NotBoundException em GateWay.main: " + e);
 		}
 
+	}
+
+	private static void searchPointers(Client c, Request conection, Message conteudo) {
+		Scanner scanner = new Scanner(System.in);
+		try {
+			System.out.println("Links pointing to " + conteudo + ":\n");
+			conection.links_pointing_to(c, conteudo);
+			System.out.println("\nPressione Enter para continuar\n");
+			scanner.nextLine();
+
+		} catch (RemoteException e) {
+			System.out.println("RemoteException em GateWay.searchPointers: " + e);
+		}
 	}
 
 	/**
@@ -144,7 +165,7 @@ public class Client extends UnicastRemoteObject implements Client_I {
 			Scanner scanner = new Scanner(System.in);
 			while (!end) {
 				conection.request10(c, conteudo, indx);
-				System.out.println("Pagina atual: " + indx +"[1] Previous 10\t[2] Next 10\t[3] End\n");
+				System.out.println("Pagina atual: " + indx +"\n[1] Previous 10\t[2] Next 10\t[3] End\n");
 				String str = scanner.nextLine();
 				switch (str) {
 					case "1":

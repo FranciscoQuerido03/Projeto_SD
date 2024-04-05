@@ -13,4 +13,6 @@ public interface Barrel_I extends Remote {
 	 * @throws java.rmi.RemoteException se ocorrer um erro durante a execução remota.
 	 */
 	public void request(String s) throws java.rmi.RemoteException;
+
+    public void links_pointing_to(String clientRequest) throws RemoteException;
 }

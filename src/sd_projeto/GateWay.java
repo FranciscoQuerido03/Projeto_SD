@@ -1,13 +1,11 @@
 package sd_projeto;
 
-import java.awt.*;
 import java.io.IOException;
 import java.net.*;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -221,6 +219,45 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		client.print_on_client(contentToSend);
 	}
 
+	/**
+	 * @param conteudo
+	 * @throws RemoteException
+	 */
+
+	@Override
+	public void links_pointing_to(Client_I c, Message conteudo) throws RemoteException{
+		client = c;
+		client_request = conteudo.toString().trim();
+		send_request_barrels_pointers();
+	}
+
+	/**
+	 * @param urlsPointingTo
+	 */
+	@Override
+	public void answer_pointers(ArrayList<URL_Content> urlsPointingTo) throws RemoteException {
+		client.print_on_client(urlsPointingTo);
+	}
+
+	private void send_request_barrels_pointers() throws RemoteException {
+		lock.lock();
+		try {
+			if (lb >= 0) {
+				if (lb >= count)
+					lb = 0;
+				System.out.println("lb " + lb);
+				long inicio_pedido = System.currentTimeMillis();
+				barrels[lb].barrel.links_pointing_to(client_request);
+				long fim_pedido = System.currentTimeMillis();
+				barrels[lb].avg_time = (barrels[lb].avg_time + ((fim_pedido - inicio_pedido) / 100)) / 2;
+				lb++;
+			} else {
+				client.print_err_2_client(new Message(Erro_Indisponibilidade));
+			}
+		} finally {
+			lock.unlock();
+		}
+	}
 
 
 	/**

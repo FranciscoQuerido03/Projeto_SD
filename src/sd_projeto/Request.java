@@ -65,4 +65,7 @@ public interface Request extends Remote {
 
     public void print_on_client_10(int indx) throws RemoteException;
 
+   public void links_pointing_to(Client_I c, Message conteudo) throws RemoteException;
+
+    public void answer_pointers(ArrayList<URL_Content> urlsPointingTo) throws RemoteException;
 }
