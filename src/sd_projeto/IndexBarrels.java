@@ -84,7 +84,6 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
         for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
             System.out.println("Title: " + entry.getKey().title);
 			System.out.println("URL: " + entry.getKey().url);
-			System.out.println("PUB_DATE: " + entry.getKey().Pub_date);
 			System.out.println("Value: " + entry.getValue());
         }
         System.out.println();
@@ -446,11 +445,8 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			if (sections.length >= 3) {
 				String title = sections[1].substring(sections[1].indexOf(":") + 2);
 				String url = sections[2].substring(sections[2].indexOf(":") + 2);
-				String Pub_date = sections[3].substring(sections[3].indexOf(":") + 2);
-				u = new URL_Content(title, url, Pub_date);
+				u = new URL_Content(title, url);
 				int count = Integer.parseInt(sections[4]);
-				
-				System.out.println(Pub_date);
 
 				synchronized(urls){
 					if(!urls.containsKey(u))
@@ -510,9 +506,14 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 					byte[] buffer = new byte[4096 * 4];
 					DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 					socket.receive(packet);
-					//System.out.println(barrel_id + " Received message: " + new String(packet.getData(), 0, packet.getLength()));
-
-					DealPacket(packet);
+				
+					String receivedMessage = new String(packet.getData(), 0, packet.getLength());
+					String sections[] = receivedMessage.split(" ");
+					//System.out.println(sections[0]);
+					if (sections[0].equals("Data_New:")) {
+						Thread packetHandlerThread = new Thread(() -> DealPacket(sections[1]));
+						packetHandlerThread.start();
+					}
 				}
 
 			} catch (IOException e) {
@@ -526,117 +527,143 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			}
 		}
 
-		private static void DealPacket(DatagramPacket packet) {
-			String message = new String(packet.getData(), 0, packet.getLength());
-			
+		private static void DealPacket(String url) {
 			//System.out.println(message);
-			String[] words = message.split("\n");
+			//String[] words = message.split("\n");
+			boolean keep = true;
+			URL_Content new_url;
+			int num_aux = 0;
 
-			if(words[0].equals("Data")){
+			try {
 
-				try{
+				MulticastSocket newSocket = new MulticastSocket(PORT);
+				newSocket.setReuseAddress(true);
+				InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
+				newSocket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
 
-					String url = words[1].split(" ")[1];
-					String title = words[2].substring(words[2].indexOf(":") + 2);
-					String publicationDate = words[3].substring(words[3].indexOf(":") + 2);
+				while(keep){
+				
+					byte[] buffer = new byte[4096];
+					DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+					newSocket.receive(packet);
+					String message = new String(packet.getData(), 0, packet.getLength());
+					String sections[] = message.split("\n");
 
-					socket.receive(packet);
-					message = new String(packet.getData(), 0, packet.getLength());
+					//System.out.println(message);
 
-					String tokens = message.substring(message.indexOf(":") + 2);
-					String list[] = tokens.split(" ");
+					if(sections[0].equals("Data: " + url)){
 
-					socket.receive(packet);
-					//System.out.println(packet.getLength());
-					message = new String(packet.getData(), 0, packet.getLength());
+						if(sections[1].split(" ")[0].equals("Title:")){
+							new_url = new URL_Content(sections[1].substring("Title: ".length()), url);
+							num_aux = insert_url(new_url);
+						}
 
-					String url_a = message.substring(message.indexOf(":") + 2);
-					String list_url_a[] = url_a.split(" ");
+						if(sections[1].split(" ")[0].equals("Text:")){
+							String textContent = sections[1].substring("Text: ".length());
+							String[] list = textContent.split("\\s+");
+							insert_words(list, num_aux);
+						}
 
+						if(sections[1].split(" ")[0].equals("Links:")){
+							String textContent = sections[1].substring("Links: ".length());
+							String[] list = textContent.split("\\s+");
+							insert_links(list, num_aux);
+						}
 
-					URL_Content new_url = new URL_Content(title, url, publicationDate);
-
-					//System.out.println(tokens);
-					//System.out.println(url_a);
-
-					int aux_url_num = 0;
-					URL_Content aux;
-
-					synchronized(urls){
+						if(sections[1].equals("END"))
+							keep = false;
+					}
 					
-						if((aux = searchByUrl(url)) == null){			//Se o URL ainda nao existe na HM
-							aux_url_num = count_urls;			//Guardamos o num equivalente dele
-							urls.put(new_url, count_urls++);	//Adiciona na HM
-
-						}else{									//Se ja existe
-							aux_url_num = get_num(new_url.url);	//vamos buscar o int associado
-							if(aux.title == null) aux.title = title;
-							if(aux.Pub_date == null) aux.Pub_date = publicationDate;
-							urls.put(aux, aux_url_num);
-						}
-					}
-
-					synchronized(words_HM){
-						for(String w : list){		//Para cada palavra que o utilizador introduziu
-							w = w.toLowerCase();
-							int[] existingArray = words_HM.get(w);
-							if(existingArray == null){				// Se a palavra ainda nao existe na HM
-								existingArray = new int[1];
-								existingArray[0] = aux_url_num;
-								//System.out.println(w);
-								words_HM.put(w, existingArray);
-							}else{									// Se ja existe
-								if(!check(existingArray, aux_url_num)){			// Se o URL ainda nao esta associado a palavra em questa
-									int newArrayLength = existingArray.length + 1;
-									int[] newArray = Arrays.copyOf(existingArray, newArrayLength);
-									newArray[newArrayLength - 1] = aux_url_num;
-									words_HM.put(w, newArray);
-								}
-							}
-						}
-					}
-
-					int aux_url_num2;								// NUM do link da lista de links
-
-					synchronized(links){
-						for(String w : list_url_a){
-							if(searchByUrl(w) == null){					//Se o URL ainda nao existe na HM
-								aux_url_num2 = count_urls;				//Guardamos o num equivalente dele
-								new_url = new URL_Content(null, w, null);
-								urls.put(new_url, count_urls++);		//Adiciona na HM
-		
-							}else{										//Se ja existe
-								aux_url_num2 = get_num(w);				//vamos buscar o int associado
-							}
-
-							int[] existingArray = links.get(aux_url_num2);
-
-							if(existingArray == null){
-								existingArray = new int[1];
-								existingArray[0] = aux_url_num;
-								links.put(aux_url_num2, existingArray);
-							} else {
-								if(!check(existingArray, aux_url_num)){			
-									int newArrayLength = existingArray.length + 1;
-									int[] newArray = Arrays.copyOf(existingArray, newArrayLength);
-									newArray[newArrayLength - 1] = aux_url_num;
-									words_HM.put(w, newArray);
-								}
-							}
-						}
-					}
-
-					//System.out.println("\n==========================\n");
-					//printUrls();
-					//printWordsHM();
-					//printLinks();
-					//System.out.println("\n==========================\n");
-
-				} catch ( IOException e){
-					System.out.println("Erro");
 				}
 
+				newSocket.close();
+				
+			} catch (IOException e){
+				System.out.println("An error occurred: " + e.getMessage());
+    			e.printStackTrace(); // This line prints the stack trace of the exception
 			}
+			
+			//System.out.println("\n==========================\n");
+			//printUrls();
+			//printWordsHM();
+			//printLinks();
+			//System.out.println("\n==========================\n");
+		}
+
+		public static void insert_links(String list_url_a[], int aux_url_num) {
+			URL_Content new_url;
+			int aux_url_num2;
+
+			synchronized(links){
+				for(String w : list_url_a){
+					if(searchByUrl(w) == null){					//Se o URL ainda nao existe na HM
+						aux_url_num2 = count_urls;				//Guardamos o num equivalente dele
+						new_url = new URL_Content(null, w);
+						urls.put(new_url, count_urls++);		//Adiciona na HM
+
+					}else{										//Se ja existe
+						aux_url_num2 = get_num(w);				//vamos buscar o int associado
+					}
+
+					int[] existingArray = links.get(aux_url_num2);
+
+					if(existingArray == null){
+						existingArray = new int[1];
+						existingArray[0] = aux_url_num;
+						links.put(aux_url_num2, existingArray);
+					} else {
+						if(!check(existingArray, aux_url_num)){			
+							int newArrayLength = existingArray.length + 1;
+							int[] newArray = Arrays.copyOf(existingArray, newArrayLength);
+							newArray[newArrayLength - 1] = aux_url_num;
+							words_HM.put(w, newArray);
+						}
+					}
+				}
+			}
+
+		}
+
+		public static void insert_words(String list[], int aux_url_num) {
+			synchronized(words_HM){
+				for(String w : list){		//Para cada palavra que o utilizador introduziu
+					w = w.toLowerCase();
+					int[] existingArray = words_HM.get(w);
+					if(existingArray == null){				// Se a palavra ainda nao existe na HM
+						existingArray = new int[1];
+						existingArray[0] = aux_url_num;
+						//System.out.println(w);
+						words_HM.put(w, existingArray);
+					}else{									// Se ja existe
+						if(!check(existingArray, aux_url_num)){			// Se o URL ainda nao esta associado a palavra em questa
+							int newArrayLength = existingArray.length + 1;
+							int[] newArray = Arrays.copyOf(existingArray, newArrayLength);
+							newArray[newArrayLength - 1] = aux_url_num;
+							words_HM.put(w, newArray);
+						}
+					}
+				}
+			}
+		}
+
+		public static int insert_url(URL_Content new_url) {
+			URL_Content aux;
+			int aux_url_num;
+
+			synchronized(urls){
+					
+				if((aux = searchByUrl(new_url.url)) == null){			//Se o URL ainda nao existe na HM
+					aux_url_num = count_urls;			//Guardamos o num equivalente dele
+					urls.put(new_url, count_urls++);	//Adiciona na HM
+
+				}else{									//Se ja existe
+					aux_url_num = get_num(new_url.url);	//vamos buscar o int associado
+					if(aux.title == null) aux.title = new_url.title;
+					urls.put(aux, aux_url_num);
+				}
+			}
+
+			return aux_url_num;
 		}
 
 		public static URL_Content searchByUrl(String url) {

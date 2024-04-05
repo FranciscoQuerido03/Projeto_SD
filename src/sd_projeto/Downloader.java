@@ -129,14 +129,23 @@ public class Downloader extends Thread {
                         }
 
                         // mensagens
+                        String startMessage = "Data_New: " + url;
                         String header = "Data: " + url + "\n";
                         String message1 = header + "Title: " + title;
                         String message2 = header + "Text: ";
                         String message3 = header + "Links: ";
-                        String endMessage = header + "END\n";
+                        String endMessage = header + "END";
+
+                        //Enviar start message
+                        byte[] buf = startMessage.getBytes();
+                        System.out.println(startMessage);
+                        DatagramPacket pack = new DatagramPacket(buf, buf.length, group, PORT);
+                        socket.send(pack);
+                        sleep(1000);
 
                         // Enviar título
                         byte[] buffer1 = message1.getBytes();
+                        System.out.println(message1);
                         DatagramPacket packet1 = new DatagramPacket(buffer1, buffer1.length, group, PORT);
                         socket.send(packet1);
 
@@ -148,6 +157,7 @@ public class Downloader extends Thread {
                                 textPart.append(words[j]).append(" ");
                             }
                             byte[] buffer2 = (message2 + textPart + "\n").getBytes();
+                            System.out.println(message2 + textPart + "\n");
                             DatagramPacket packet2 = new DatagramPacket(buffer2, buffer2.length, group, PORT);
                             socket.send(packet2);
                         }
@@ -160,12 +170,16 @@ public class Downloader extends Thread {
                                 linksPart.append(linkUrls[j]).append(" ");
                             }
                             byte[] buffer3 = (message3 + linksPart + "\n").getBytes();
+                            System.out.println(message3 + linksPart + "\n");
                             DatagramPacket packet3 = new DatagramPacket(buffer3, buffer3.length, group, PORT);
                             socket.send(packet3);
                         }
 
+                        sleep(1000);
+
                         // Enviar mensagem final
                         byte[] buffer4 = endMessage.getBytes();
+                        System.out.println(endMessage);
                         DatagramPacket packet4 = new DatagramPacket(buffer4, buffer4.length, group, PORT);
                         socket.send(packet4);
 
