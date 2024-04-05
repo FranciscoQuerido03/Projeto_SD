@@ -21,4 +21,6 @@ public interface Client_I extends Remote {
      * @throws java.rmi.RemoteException se ocorrer um erro durante a execução remota.
      */
     public void print_err_2_client(Message erro) throws java.rmi.RemoteException;
+
+    public void print_adm_console_on_client(Message m) throws java.rmi.RemoteException;
 }

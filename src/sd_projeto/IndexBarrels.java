@@ -540,7 +540,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 					byte[] buffer = new byte[4096 * 4];
 					DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 					socket.receive(packet);
-
+				
 					String receivedMessage = new String(packet.getData(), 0, packet.getLength());
 					String sections[] = receivedMessage.split(" ");
 					//System.out.println(sections[0]);
@@ -567,6 +567,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			boolean keep = true;
 			URL_Content new_url;
 			int num_aux = 0;
+			int flag = 0;
 
 			try {
 
@@ -576,7 +577,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				newSocket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
 
 				while(keep){
-
+				
 					byte[] buffer = new byte[4096];
 					DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 					newSocket.receive(packet);
@@ -594,6 +595,22 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 						if(sections[1].split(" ")[0].equals("Text:")){
 							String textContent = sections[1].substring("Text: ".length());
+
+							if(flag == 0){												// Buscar as primeiras 10 palavras para a citaçao
+								String[] parts = sections[1].split(" ");
+								StringBuilder resultBuilder = new StringBuilder();
+								for (int i = 1; i <= 10 && i < parts.length; i++) {
+									resultBuilder.append(parts[i]);
+									if (i < 10 && i < parts.length - 1) {
+										resultBuilder.append(" ");
+									}
+								}
+								resultBuilder.deleteCharAt(resultBuilder.length() - 1);
+								URL_Content aux = searchByUrl(url);
+								aux.add_citacao(resultBuilder.toString());
+								flag = 1;
+							}
+
 							String[] list = textContent.split("\\s+");
 							insert_words(list, num_aux);
 						}
@@ -607,16 +624,16 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 						if(sections[1].equals("END"))
 							keep = false;
 					}
-
+					
 				}
 
 				newSocket.close();
-
+				
 			} catch (IOException e){
 				System.out.println("An error occurred: " + e.getMessage());
-				e.printStackTrace(); // This line prints the stack trace of the exception
+    			e.printStackTrace(); // This line prints the stack trace of the exception
 			}
-
+			
 			//System.out.println("\n==========================\n");
 			//printUrls();
 			//printWordsHM();
@@ -646,7 +663,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 						existingArray[0] = aux_url_num;
 						links.put(aux_url_num2, existingArray);
 					} else {
-						if(!check(existingArray, aux_url_num)){
+						if(!check(existingArray, aux_url_num)){			
 							int newArrayLength = existingArray.length + 1;
 							int[] newArray = Arrays.copyOf(existingArray, newArrayLength);
 							newArray[newArrayLength - 1] = aux_url_num;
@@ -685,7 +702,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			int aux_url_num;
 
 			synchronized(urls){
-
+					
 				if((aux = searchByUrl(new_url.url)) == null){			//Se o URL ainda nao existe na HM
 					aux_url_num = count_urls;			//Guardamos o num equivalente dele
 					urls.put(new_url, count_urls++);	//Adiciona na HM

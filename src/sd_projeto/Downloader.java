@@ -30,8 +30,8 @@ public class Downloader extends Thread {
     private static final Object lock = new Object();
 
     private static final List<String> stopWords = Arrays.asList(
-            "de", "a", "o", "que", "e", "do", "da", "em", "um", "para", "é", "com", "não", "uma", "os", "no", "se",
-            "na", "por", "mais", "as", "dos", "como", "mas", "foi", "ao", "ele", "das", "tem", "à", "seu", "sua", "ou",
+            "de", "que", "do", "da", "em", "um", "para", "com", "não", "uma", "os", "no", "se",
+            "na", "por", "mais", "as", "dos", "como", "mas", "foi", "ao", "ele", "das", "tem", "seu", "sua", "ou",
             "ser", "quando", "muito", "há", "nos", "já", "está", "eu", "também", "só", "pelo", "pela", "até", "isso",
             "ela", "entre", "era", "depois", "sem", "mesmo", "aos", "ter", "seus", "quem", "nas", "me", "esse", "eles",
             "estão", "você", "tinha", "foram", "essa", "num", "nem", "suas", "meu", "às", "minha", "têm", "numa", "pelos",
@@ -47,7 +47,7 @@ public class Downloader extends Thread {
             "fôssemos", "fossem", "for", "formos", "forem", "serei", "será", "seremos", "serão", "seria", "seríamos", "seriam",
             "tenho", "tem", "temos", "tém", "tinha", "tínhamos", "tinham", "tive", "teve", "tivemos", "tiveram", "tivera",
             "tivéramos", "tenha", "tenhamos", "tenham", "tivesse", "tivéssemos", "tivessem", "tiver", "tivermos", "tiverem",
-            "terei", "terá", "teremos", "terão", "teria", "teríamos", "teriam", "?", "!", "-", " ", "–", ":", ";", ",", ".", "|"
+            "terei", "terá", "teremos", "terão", "teria", "teríamos", "teriam"
     );
 
 
@@ -58,11 +58,12 @@ public class Downloader extends Thread {
 
     // Função para remover as stopwords de um texto
     private static String removeStopWords(String text) {
-        String[] words = text.split("\\s+");
+        String[] words = text.split("[\\s,.():;|_!?<>«»\"\'-/]+");
         List<String> filteredWords = new ArrayList<>();
         for (String word : words) {
             if (!stopWords.contains(word.toLowerCase())) {
-                filteredWords.add(word);
+                if(word.length() > 2)
+                    filteredWords.add(word);         
             }
         }
         return String.join(" ", filteredWords);
@@ -105,7 +106,7 @@ public class Downloader extends Thread {
                 url = queue.getFirst();
                 if (url != null && correctURL(url)) {
                     try {
-                        System.out.println("Processing URL...");
+                        System.out.println("Processing URL..." + url);
                         MulticastSocket socket = new MulticastSocket();
                         Document doc = Jsoup.connect(url).get();
 
@@ -138,14 +139,14 @@ public class Downloader extends Thread {
 
                         //Enviar start message
                         byte[] buf = startMessage.getBytes();
-                        System.out.println(startMessage);
+                        //System.out.println(startMessage);
                         DatagramPacket pack = new DatagramPacket(buf, buf.length, group, PORT);
                         socket.send(pack);
                         sleep(1000);
 
                         // Enviar título
                         byte[] buffer1 = message1.getBytes();
-                        System.out.println(message1);
+                        //System.out.println(message1);
                         DatagramPacket packet1 = new DatagramPacket(buffer1, buffer1.length, group, PORT);
                         socket.send(packet1);
 
@@ -157,7 +158,7 @@ public class Downloader extends Thread {
                                 textPart.append(words[j]).append(" ");
                             }
                             byte[] buffer2 = (message2 + textPart + "\n").getBytes();
-                            System.out.println(message2 + textPart + "\n");
+                            //System.out.println(message2 + textPart + "\n");
                             DatagramPacket packet2 = new DatagramPacket(buffer2, buffer2.length, group, PORT);
                             socket.send(packet2);
                         }
@@ -170,7 +171,7 @@ public class Downloader extends Thread {
                                 linksPart.append(linkUrls[j]).append(" ");
                             }
                             byte[] buffer3 = (message3 + linksPart + "\n").getBytes();
-                            System.out.println(message3 + linksPart + "\n");
+                            //System.out.println(message3 + linksPart + "\n");
                             DatagramPacket packet3 = new DatagramPacket(buffer3, buffer3.length, group, PORT);
                             socket.send(packet3);
                         }
@@ -179,16 +180,18 @@ public class Downloader extends Thread {
 
                         // Enviar mensagem final
                         byte[] buffer4 = endMessage.getBytes();
-                        System.out.println(endMessage);
+                        //System.out.println(endMessage);
                         DatagramPacket packet4 = new DatagramPacket(buffer4, buffer4.length, group, PORT);
                         socket.send(packet4);
 
 
-                        //                       System.out.println("Sent message: \n" + endMessage);
+ //                       System.out.println("Sent message: \n" + endMessage);
 
                         url = null;
 
-                    } catch (IOException ignored) {}
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 } else {
                     sleep(1000);
                 }
@@ -199,8 +202,25 @@ public class Downloader extends Thread {
     }
 
     private boolean correctURL(String url) {
-        return url.startsWith("http://") || url.startsWith("https://");
+        try {
+            URL testURL = new URL(url);
+            URLConnection connection = testURL.openConnection();
+
+            // Verificar se a conexão é do tipo HttpURLConnection
+            if (connection instanceof HttpURLConnection conn) {
+                conn.setRequestMethod("HEAD"); // Apenas cabeçalhos, sem baixar o conteúdo
+                int responseCode = conn.getResponseCode();
+                return (responseCode == HttpURLConnection.HTTP_OK);
+            } else {
+                // Tratar casos em que a URL não é uma conexão HTTP
+                return false;
+            }
+        } catch (IOException ignored) {
+            // Tratar exceções de E/S, como URL malformada ou problemas de conexão
+            return false;
+        }
     }
+
 
 
     private static void print(String msg, Object... args) {

@@ -25,12 +25,8 @@ public interface Request extends Remote {
      */
     public void send_request_queue(Client_I c, Message m) throws RemoteException;
 
-    /**
-     * Retorna um painel de administração com informações sobre o sistema.
-     * @return Uma mensagem com informações sobre o sistema.
-     * @throws RemoteException se ocorrer um erro durante a comunicação remota.
-     */
-    public Message adm_painel() throws RemoteException;
+
+    public void request_adm_painel(Client_I c) throws RemoteException;
 
     /**
      * ?????????????????????????.
@@ -60,6 +56,10 @@ public interface Request extends Remote {
      * @throws RemoteException se ocorrer um erro durante a comunicação remota.
      */
     public void barrel_disconnect(Barrel_I barrel) throws RemoteException;
+
+    public void client_connect(Client_I c) throws RemoteException;
+
+    public void client_disconnect(Client_I c) throws RemoteException;
 
     public void request10(Client_I c, Message m, int indx) throws RemoteException;
 
