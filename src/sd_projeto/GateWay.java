@@ -33,6 +33,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	private static ReentrantLock lock = new ReentrantLock();
 
 	private static HashMap<Client_I, ArrayList<URL_Content>> results10 = new HashMap<>();
+	private static ArrayList<Client_info> clientes;
 
 	/**
 	 * Construtor para criar o Gateway.
@@ -47,6 +48,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		barrels = new Barrel_struct[NUM_BARRELS];
 		Barrel_struct.initialize(barrels, NUM_BARRELS);
 		top_searches = new TopSearches();
+		clientes = new ArrayList<>();
 		queue = (QueueInterface) Naming.lookup(f.lookup[0]);
 	}
 
@@ -66,6 +68,29 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		}
 	}
 
+	public void client_connect(Client_I c) throws RemoteException {
+		clientes.add(new Client_info(c, false));
+	}
+
+	public void client_disconnect(Client_I c) throws RemoteException {
+		Client_info ci = get_client(c);
+		if(ci != null)
+			clientes.remove(ci);
+	}
+
+	public void request_adm_painel(Client_I c) throws RemoteException {
+		Client_info ci = get_client(c);
+		ci.set_see_console();
+	}
+
+	public Client_info get_client (Client_I c) {
+		for(Client_info ci : clientes){
+			if(ci.c.equals(c)){
+				return ci;
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * ??????????????????????????????????????????
@@ -149,6 +174,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		if(count < NUM_BARRELS){
 			Barrel_struct.add_barrel(barrels, barrel, id, count);
 			count++;
+			adm_painel();
 		}
 	}
 
@@ -228,14 +254,22 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 * @return Uma mensagem com informações sobre o sistema.
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
-	public Message adm_painel() throws RemoteException {
-		Message m = new Message("");
-		m.addText("Online Servers: " + count + "\n");
-		m.addText("Top 10 most common searches: \n");
-		m.addText(top_searches.getTop10());
-		m.addText("Average response time: \n");
-		m.addText(Barrel_struct.get_avg_times(barrels, count));
-		return m;
+	public void adm_painel() throws RemoteException {
+		
+		for(Client_info ci : clientes){
+			if(ci.see_console){
+				Message m = new Message("");
+				m.addText("============< ADM CONSOLE >============\n");
+				m.addText("Online Servers: " + count + "\n");
+				m.addText("Top 10 most common searches: \n");
+				m.addText(top_searches.getTop10());
+				m.addText("Average response time: \n");
+				m.addText(Barrel_struct.get_avg_times(barrels, count));
+				m.addText("============< ----------- >============\n");
+
+				ci.c.print_adm_console_on_client(m);
+			}
+		}
 	}
 
 	/**

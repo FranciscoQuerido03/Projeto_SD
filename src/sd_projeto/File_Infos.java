@@ -21,7 +21,7 @@ public class File_Infos implements Serializable {
      * Construtor para criar um objeto File_Infos e inicializar a leitura do arquivo de configuração.
      */
     public File_Infos() {
-        this.file = new File("src\\Index_config.txt");
+        this.file = new File("..\\Index_config.txt");
         try {
             this.fileReader = new FileReader(file);
             this.bufferedReader = new BufferedReader(fileReader);

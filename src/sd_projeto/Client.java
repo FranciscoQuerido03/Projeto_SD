@@ -44,6 +44,10 @@ public class Client extends UnicastRemoteObject implements Client_I {
 			
 	}
 
+	public void print_adm_console_on_client(Message m) throws java.rmi.RemoteException {
+		System.out.println(m.toString());
+	}
+
 	/**
 	 * Imprime a mensagem de erro no cliente.
 	 * @param erro A mensagem de erro a ser impressa.
@@ -65,6 +69,8 @@ public class Client extends UnicastRemoteObject implements Client_I {
 
 			Scanner scanner = new Scanner(System.in);
 			Request Conection = (Request) Naming.lookup(NAMING);
+			Conection.client_connect(c);
+			
 			while(keepItgoin){
 
 				System.out.println("\nSelecione uma opcao:");
@@ -92,8 +98,9 @@ public class Client extends UnicastRemoteObject implements Client_I {
 						}
 						break;
 					case "3":
-						Message response = Conection.adm_painel();
-						System.out.println("\n" + response.toString());
+						Conection.request_adm_painel(c);
+						adm_painel_handler();
+						Conection.request_adm_painel(c);
 						break;
 					case "4":
 						System.out.println("Terminado");
@@ -128,6 +135,16 @@ public class Client extends UnicastRemoteObject implements Client_I {
 			return false;
 		}
 		return true;
+	}
+
+	private static void adm_painel_handler() {
+		System.out.println("Press [1] to exit");
+		Scanner sc = new Scanner(System.in);
+
+		while(!sc.nextLine().equals("1"))
+			continue;
+		
+		return;
 	}
 
 	/**
