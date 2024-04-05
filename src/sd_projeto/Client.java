@@ -71,7 +71,7 @@ public class Client extends UnicastRemoteObject implements Client_I {
 				System.out.println("[1] search <search query>");
 				System.out.println("[2] index <url>");
 				System.out.println("[3] stats");
-				System.out.println("[4] \\close\n");
+				System.out.println("[4] exit\n");
 
 				String str = scanner.nextLine();
 
@@ -82,12 +82,12 @@ public class Client extends UnicastRemoteObject implements Client_I {
 
 				switch (parts[0]) {
 					case "1":
-						System.out.println("\nPesquisando por " + conteudo + "...\n");
+						System.out.println("\nA pesquisar por " + conteudo + "...\n");
 						searchBarrels(c, Conection, conteudo);
 						break;
 					case "2":
 						if(checkUrl(conteudo)) {
-							System.out.println("\nIndexando " + conteudo + "...\n");
+							System.out.println("\nA indexar " + conteudo + "...\n");
 							Conection.send_request_queue(c, conteudo);
 						}
 						break;
@@ -140,18 +140,19 @@ public class Client extends UnicastRemoteObject implements Client_I {
 	private static void searchBarrels(Client c, Request conection, Message conteudo) {
 		try {
 			boolean end = false;
-			int i = 0;
+			int indx = 0;
 			Scanner scanner = new Scanner(System.in);
 			while (!end) {
-				conection.send_request_barrels(c, conteudo, i);
-				System.out.println("[1] Anteriores 10\t[2] Próximos 10\t[3] Fim\n");
+				conection.request10(c, conteudo, indx);
+				System.out.println("Pagina atual: " + indx +"[1] Previous 10\t[2] Next 10\t[3] End\n");
 				String str = scanner.nextLine();
 				switch (str) {
 					case "1":
-						i -= 1;
+						indx -= 1;
+						if (indx < 0) indx = 0;
 						break;
 					case "2":
-						i += 1;
+						indx += 1;
 						break;
 					case "3":
 						end = true;
@@ -161,6 +162,8 @@ public class Client extends UnicastRemoteObject implements Client_I {
 						break;
 				}
 			}
+			//Apaga o registo do cliente
+			conection.request10(c, conteudo, -1);
 
 		} catch (RemoteException e) {
 			System.out.println("RemoteException em GateWay.searchBarrels: " + e);

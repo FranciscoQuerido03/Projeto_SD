@@ -1,11 +1,15 @@
 package sd_projeto;
 
+import java.awt.*;
 import java.io.IOException;
 import java.net.*;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.*;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -27,6 +31,8 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	private static int PORT;
 	private static QueueInterface queue;
 	private static ReentrantLock lock = new ReentrantLock();
+
+	private static HashMap<Client_I, ArrayList<URL_Content>> results10 = new HashMap<>();
 
 	/**
 	 * Construtor para criar o Gateway.
@@ -60,6 +66,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		}
 	}
 
+
 	/**
 	 * ??????????????????????????????????????????
 	 * @param s A mensagem de erro.
@@ -73,10 +80,9 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 * Método para enviar solicitações aos barrels remotos.
 	 * @param c O cliente.
 	 * @param m A mensagem com a solicitação.
-	 * @param min Número que define o intervalo de resultados a serem retornados.
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
-	public void send_request_barrels(Client_I c, Message m, int min) throws RemoteException {
+	public void send_request_barrels(Client_I c, Message m) throws RemoteException {
 		lock.lock();
 		try {
 			System.out.println("GateWay: " + m.toString() + " " + count);
@@ -86,11 +92,9 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			if (lb >= 0) {
 				if (lb >= count)
 					lb = 0;
-				//System.out.println("lb " + lb);
-				//System.out.println(barrels[lb].barrel);
-				//barrels[lb].printWordsHM();
+				System.out.println("lb " + lb);
 				long inicio_pedido = System.currentTimeMillis();
-				barrels[lb].barrel.request(client_request.toLowerCase(), min);
+				barrels[lb].barrel.request(client_request.toLowerCase());
 				long fim_pedido = System.currentTimeMillis();
 				barrels[lb].avg_time = (barrels[lb].avg_time + ((fim_pedido - inicio_pedido) / 100)) / 2;
 				lb++;
@@ -101,6 +105,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			lock.unlock();
 		}
 	}
+
 
 	/**
 	 * Método para enviar solicitações à queue.
@@ -127,16 +132,16 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		if(count > 0){
 			System.out.println("Sync Needed Cuh");
 			try (MulticastSocket socket = new MulticastSocket(4321)) {
-                String message = "Sync";
-                byte[] buffer = message.getBytes();
+				String message = "Sync";
+				byte[] buffer = message.getBytes();
 
-                InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
+				InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
 				socket.joinGroup(new InetSocketAddress(group, 0), NetworkInterface.getByIndex(0));
 
 				DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
 				socket.send(packet);
 
-            } catch (IOException e) {
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
@@ -152,10 +157,71 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 * @param m A lista de URLs.
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
-	public void answer(ArrayList<URL_Content> m) throws RemoteException{
-		//System.out.println(m.toString());
-		client.print_on_client(m);
+
+	public void answer(ArrayList<URL_Content> m) throws RemoteException {
+		if (!m.isEmpty()) {
+			// Organizar a lista por prioridade
+			m.sort(Comparator.comparingInt(a -> a.priority));
+			// Adicionar a lista organizada ao HashMap
+			results10.put(client, m);
+		}
+		else {
+			results10.put(client, new ArrayList<>());
+		}
 	}
+
+
+	/**
+	 * @param c
+	 * @param m
+	 * @param indx
+	 * @throws RemoteException
+	 */
+	@Override
+	public void request10(Client_I c, Message m, int indx) throws RemoteException {
+		if (indx < 0) {
+			results10.remove(c);
+			return;
+		}
+		client = c;
+		// Verifica se há resultados para o cliente
+		if (results10.containsKey(client)) {
+			print_on_client_10(indx);
+		} else {
+			// Se não houver resultados para o cliente, envia uma solicitação
+			send_request_barrels(c, m);
+			print_on_client_10(indx);
+		}
+	}
+
+	@Override
+	public void print_on_client_10(int indx) throws java.rmi.RemoteException {
+
+		ArrayList<URL_Content> contentToSend = new ArrayList<>();
+
+		if (!results10.containsKey(client)) {
+			return;
+		}
+
+		ArrayList<URL_Content> results = results10.get(client);
+
+		if (results.isEmpty()) {
+			return;
+		}
+
+		int startIndex = indx * 10;
+		int endIndex = Math.min(startIndex + 10, results.size()); // Garante que não ultrapasse o tamanho da lista
+
+		// Adiciona os 10 conteúdos à lista a ser enviada
+		for (int i = startIndex; i < endIndex; i++) {
+			contentToSend.add(results.get(i));
+		}
+
+		// Envie o ArrayList contentToSend para o cliente
+		client.print_on_client(contentToSend);
+	}
+
+
 
 	/**
 	 * Método para fornecer o painel de administração do sistema ao cliente.
