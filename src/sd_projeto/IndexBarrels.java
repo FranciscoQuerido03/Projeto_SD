@@ -105,8 +105,6 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	}
 
 
-
-
 	/*
 	 * 	<Debug Functions>
 	 */
@@ -152,7 +150,6 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	// =======================================================
 
 	public static void main(String[] args) {
-		//readFile();
 
 		try {
 			File_Infos f = new File_Infos();
@@ -165,20 +162,14 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			Conection = (Request) Naming.lookup(NAMING_URL);
 
 			try{
-				numBarrels = Integer.parseInt(args[0]);
-				id = Integer.parseInt(args[1]);
+				id = Integer.parseInt(args[0]);
 			} catch (NumberFormatException | ArrayIndexOutOfBoundsException e){
-				System.err.println("Falta o num de barrels cuh");
+				System.err.println("Falta o id do barrel cuh");
 				System.exit(1);
 			}
 
-			for(int i = 0; i< numBarrels; i++){
-				Thread barrel = new Thread(new Barrel_Function(id+i));
-				barrel.start();
-			}
-
-			//System.out.println("Barrel ready.");
-
+			Thread barrel = new Thread(new Barrel_Function(id));
+			barrel.start();		
 
 		} catch (RemoteException re) {
 			System.out.println("Exception in GateWay.main: " + re);
