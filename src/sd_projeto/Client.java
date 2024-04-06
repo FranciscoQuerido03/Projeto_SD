@@ -106,9 +106,9 @@ public class Client extends UnicastRemoteObject implements Client_I {
 						}
 						break;
 					case "4":
-                        Conection.request_adm_painel(c);
+                        Conection.request_adm_painel(c, true);
                         adm_painel_handler();
-                        Conection.request_adm_painel(c);
+                        Conection.request_adm_painel(c, false);
                         break;
 					case "5":
 						System.out.println("Terminado");

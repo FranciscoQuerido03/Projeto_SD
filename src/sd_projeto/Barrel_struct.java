@@ -42,7 +42,7 @@ public class Barrel_struct {
     public static String get_avg_times(Barrel_struct[] lista, int count) {
         StringBuilder s = new StringBuilder();
         for(int i = 0; i < count; i++) {
-            s.append("[Barrel" + lista[i].barrel_id + "] => " + lista[i].avg_time + "\n");
+            s.append("[Barrel id<" + lista[i].barrel_id + ">] => " + lista[i].avg_time + " s\n");
         }
         return s.toString();
     }

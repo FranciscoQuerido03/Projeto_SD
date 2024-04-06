@@ -10,6 +10,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.swing.text.StyledEditorKit.BoldAction;
+
 /**
  * Classe que representa o Gateway do motor de busca.
  * O Gateway coordena as solicitações entre o cliente e os barrels ou a queue.
@@ -32,6 +34,10 @@ public class GateWay extends UnicastRemoteObject implements Request {
 
 	private static HashMap<Client_I, ArrayList<URL_Content>> results10 = new HashMap<>();
 	private static ArrayList<Client_info> clientes;
+
+	public static HashMap<Client_I, ArrayList<URL_Content>> getResults10() {
+		return results10;
+	}
 
 	/**
 	 * Construtor para criar o Gateway.
@@ -77,9 +83,11 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			clientes.remove(ci);
 	}
 
-	public void request_adm_painel(Client_I c) throws RemoteException {
+	public void request_adm_painel(Client_I c, Boolean b) throws RemoteException {
 		Client_info ci = get_client(c);
 		ci.set_see_console();
+		if(b)
+			c.print_adm_console_on_client(construct_adm_painel());
 	}
 
 	public Client_info get_client (Client_I c) {
@@ -120,11 +128,12 @@ public class GateWay extends UnicastRemoteObject implements Request {
 				long inicio_pedido = System.currentTimeMillis();
 				barrels[lb].barrel.request(client_request.toLowerCase());
 				long fim_pedido = System.currentTimeMillis();
-				barrels[lb].avg_time = (barrels[lb].avg_time + ((fim_pedido - inicio_pedido) / 100)) / 2;
+				barrels[lb].avg_time = (barrels[lb].avg_time + ((fim_pedido - inicio_pedido) / 1000)) / 2;
 				lb++;
 			} else {
 				client.print_err_2_client(new Message(Erro_Indisponibilidade));
 			}
+			adm_painel();
 		} finally {
 			lock.unlock();
 		}
@@ -186,7 +195,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	public void answer(ArrayList<URL_Content> m) throws RemoteException {
 		if (!m.isEmpty()) {
 			// Organizar a lista por prioridade
-			m.sort(Comparator.comparingInt(a -> a.priority));
+			m.sort((a, b) -> Integer.compare(b.priority, a.priority));
 			// Adicionar a lista organizada ao HashMap
 			results10.put(client, m);
 		}
@@ -296,18 +305,21 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		
 		for(Client_info ci : clientes){
 			if(ci.see_console){
-				Message m = new Message("");
-				m.addText("============< ADM CONSOLE >============\n");
-				m.addText("Online Servers: " + count + "\n");
-				m.addText("Top 10 most common searches: \n");
-				m.addText(top_searches.getTop10());
-				m.addText("Average response time: \n");
-				m.addText(Barrel_struct.get_avg_times(barrels, count));
-				m.addText("============< ----------- >============\n");
-
-				ci.c.print_adm_console_on_client(m);
+				ci.c.print_adm_console_on_client(construct_adm_painel());
 			}
 		}
+	}
+
+	public Message construct_adm_painel() {
+		Message m = new Message("");
+		m.addText("============< ADM CONSOLE >============\n");
+		m.addText("Online Servers: " + count + "\n");
+		m.addText("Top 10 most common searches: \n");
+		m.addText(top_searches.getTop10());
+		m.addText("Average response time: \n");
+		m.addText(Barrel_struct.get_avg_times(barrels, count));
+		m.addText("============< ----------- >============\n");
+		return m;
 	}
 
 	/**

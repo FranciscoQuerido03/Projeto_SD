@@ -113,7 +113,7 @@ public class Downloader extends Thread {
                         // Extrair título do documento
                         String title = doc.title();
 
-                        // Extrair todo o texto do HTML
+                        // Extrair o texto do HTML
                         String tokens = doc.text();
                         tokens = removeStopWords(tokens);
 
@@ -124,8 +124,8 @@ public class Downloader extends Thread {
                         for (Element link : links) {
                             String linkUrl = link.attr("abs:href");
                             if (correctURL(linkUrl)) {
-                                linksText.append(linkUrl).append(" "); // todos os links em uma string
-                                queue.addLast(linkUrl); // adicionar os links na fila
+                                linksText.append(linkUrl).append(" "); // todos os links numa string
+                                queue.addLast(linkUrl); // adicionar os links à fila
                             }
                         }
 
@@ -189,9 +189,7 @@ public class Downloader extends Thread {
 
                         url = null;
 
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    } catch (IOException ignored) {}
                 } else {
                     sleep(1000);
                 }
@@ -202,23 +200,11 @@ public class Downloader extends Thread {
     }
 
     private boolean correctURL(String url) {
-        try {
-            URL testURL = new URL(url);
-            URLConnection connection = testURL.openConnection();
-
-            // Verificar se a conexão é do tipo HttpURLConnection
-            if (connection instanceof HttpURLConnection conn) {
-                conn.setRequestMethod("HEAD"); // Apenas cabeçalhos, sem baixar o conteúdo
-                int responseCode = conn.getResponseCode();
-                return (responseCode == HttpURLConnection.HTTP_OK);
-            } else {
-                // Tratar casos em que a URL não é uma conexão HTTP
-                return false;
-            }
-        } catch (IOException ignored) {
-            // Tratar exceções de E/S, como URL malformada ou problemas de conexão
+        if (!url.toString().startsWith("http://") && !url.toString().startsWith("https://")) {
+            //System.out.println("\nURL inválida\nA URL deve começar com 'http://' ou 'https://'\nTente novamente\n");
             return false;
         }
+        return true;
     }
 
 
