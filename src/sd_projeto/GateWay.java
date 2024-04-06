@@ -33,6 +33,10 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	private static HashMap<Client_I, ArrayList<URL_Content>> results10 = new HashMap<>();
 	private static ArrayList<Client_info> clientes;
 
+	public static HashMap<Client_I, ArrayList<URL_Content>> getResults10() {
+		return results10;
+	}
+
 	/**
 	 * Construtor para criar o Gateway.
 	 * @param f As informações do arquivo de configuração.
@@ -186,7 +190,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	public void answer(ArrayList<URL_Content> m) throws RemoteException {
 		if (!m.isEmpty()) {
 			// Organizar a lista por prioridade
-			m.sort(Comparator.comparingInt(a -> a.priority));
+			m.sort((a, b) -> Integer.compare(b.priority, a.priority));
 			// Adicionar a lista organizada ao HashMap
 			results10.put(client, m);
 		}

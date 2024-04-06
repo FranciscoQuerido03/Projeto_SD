@@ -68,7 +68,7 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
      */
     @Override
     public synchronized void addFirst(String url) throws RemoteException {
-        System.out.println("adicionou");
+        System.out.println(url);
         if (!bloomFilter.contains(url)) {
             queue.addFirst(url);
         }
