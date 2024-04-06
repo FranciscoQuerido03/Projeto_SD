@@ -1,9 +1,7 @@
 package sd_projeto;
 
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.*;
 import java.net.MalformedURLException;
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
@@ -17,6 +15,27 @@ import java.util.Scanner;
 public class Client extends UnicastRemoteObject implements Client_I {
 
 	private static String NAMING;
+
+	private static final List<String> stopWords = Arrays.asList(
+			"de", "que", "do", "da", "em", "um", "para", "com", "não", "uma", "os", "no", "se",
+			"na", "por", "mais", "as", "dos", "como", "mas", "foi", "ao", "ele", "das", "tem", "seu", "sua", "ou",
+			"ser", "quando", "muito", "há", "nos", "já", "está", "eu", "também", "só", "pelo", "pela", "até", "isso",
+			"ela", "entre", "era", "depois", "sem", "mesmo", "aos", "ter", "seus", "quem", "nas", "me", "esse", "eles",
+			"estão", "você", "tinha", "foram", "essa", "num", "nem", "suas", "meu", "às", "minha", "têm", "numa", "pelos",
+			"elas", "havia", "seja", "qual", "será", "nós", "tenho", "lhe", "deles", "essas", "esses", "pelas", "este",
+			"fosse", "dele", "tu", "te", "vocês", "vos", "lhes", "meus", "minhas", "teu", "tua", "teus", "tuas", "nosso",
+			"nossa", "nossos", "nossas", "dela", "delas", "esta", "estes", "estas", "aquele", "aquela", "aqueles", "aquelas",
+			"isto", "aquilo", "estou", "está", "estamos", "estão", "estive", "esteve", "estivemos", "estiveram", "estava",
+			"estávamos", "estavam", "estivera", "estivéramos", "esteja", "estejamos", "estejam", "estivesse", "estivéssemos",
+			"estivessem", "estiver", "estivermos", "estiverem", "hei", "há", "havemos", "hão", "houve", "houvemos", "houveram",
+			"houvera", "houvéramos", "haja", "hajamos", "hajam", "houvesse", "houvéssemos", "houvessem", "houver", "houvermos",
+			"houverem", "houverei", "houverá", "houveremos", "houverão", "houveria", "houveríamos", "houveriam", "sou", "somos",
+			"são", "era", "éramos", "eram", "fui", "foi", "fomos", "foram", "fora", "fôramos", "seja", "sejamos", "sejam", "fosse",
+			"fôssemos", "fossem", "for", "formos", "forem", "serei", "será", "seremos", "serão", "seria", "seríamos", "seriam",
+			"tenho", "tem", "temos", "tém", "tinha", "tínhamos", "tinham", "tive", "teve", "tivemos", "tiveram", "tivera",
+			"tivéramos", "tenha", "tenhamos", "tenham", "tivesse", "tivéssemos", "tivessem", "tiver", "tivermos", "tiverem",
+			"terei", "terá", "teremos", "terão", "teria", "teríamos", "teriam"
+	);
 
 	/**
 	 * Construtor para criar um cliente.
@@ -91,6 +110,7 @@ public class Client extends UnicastRemoteObject implements Client_I {
 				switch (parts[0]) {
 					case "1":
 						System.out.println("\nSearching " + conteudo + "...\n");
+						conteudo = new Message(removeStopWords(conteudo.toString()));
 						searchBarrels(c, Conection, conteudo);
 						break;
 					case "2":
@@ -206,6 +226,19 @@ public class Client extends UnicastRemoteObject implements Client_I {
 		} catch (RemoteException e) {
 			System.out.println("RemoteException em GateWay.searchBarrels: " + e);
 		}
+	}
+
+	// Função para remover as stopwords de um texto
+	private static String removeStopWords(String text) {
+		String[] words = text.split("\\s+");
+		List<String> filteredWords = new ArrayList<>();
+		for (String word : words) {
+			if (!stopWords.contains(word.toLowerCase())) {
+				if(word.length() > 2)
+					filteredWords.add(word);
+			}
+		}
+		return String.join(" ", filteredWords);
 	}
 
 }
