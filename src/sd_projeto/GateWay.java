@@ -128,11 +128,12 @@ public class GateWay extends UnicastRemoteObject implements Request {
 				long inicio_pedido = System.currentTimeMillis();
 				barrels[lb].barrel.request(client_request.toLowerCase());
 				long fim_pedido = System.currentTimeMillis();
-				barrels[lb].avg_time = (barrels[lb].avg_time + ((fim_pedido - inicio_pedido) / 100)) / 2;
+				barrels[lb].avg_time = (barrels[lb].avg_time + ((fim_pedido - inicio_pedido) / 1000)) / 2;
 				lb++;
 			} else {
 				client.print_err_2_client(new Message(Erro_Indisponibilidade));
 			}
+			adm_painel();
 		} finally {
 			lock.unlock();
 		}

@@ -61,8 +61,13 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				not_found_words.addUrl(word);
 			}
 		}
-
-
+		/*
+		try{
+			Thread.sleep(1000);
+		} catch (InterruptedException e){
+			System.out.println("Erro");
+		}
+		 */
 		if (!resultado.isEmpty()) {
 			if(not_found_words.hasValues())
 				Conection.err_no_matches(new Message("No URLs found for: " + not_found_words.wordtoString()));
