@@ -201,7 +201,7 @@ public class Downloader extends Thread {
 
     private boolean correctURL(String url) {
         if (!url.toString().startsWith("http://") && !url.toString().startsWith("https://")) {
-            System.out.println("\nURL inválida\nA URL deve começar com 'http://' ou 'https://'\nTente novamente\n");
+            //System.out.println("\nURL inválida\nA URL deve começar com 'http://' ou 'https://'\nTente novamente\n");
             return false;
         }
         return true;

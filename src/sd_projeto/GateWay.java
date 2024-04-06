@@ -10,6 +10,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.swing.text.StyledEditorKit.BoldAction;
+
 /**
  * Classe que representa o Gateway do motor de busca.
  * O Gateway coordena as solicitações entre o cliente e os barrels ou a queue.
@@ -81,9 +83,11 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			clientes.remove(ci);
 	}
 
-	public void request_adm_painel(Client_I c) throws RemoteException {
+	public void request_adm_painel(Client_I c, Boolean b) throws RemoteException {
 		Client_info ci = get_client(c);
 		ci.set_see_console();
+		if(b)
+			c.print_adm_console_on_client(construct_adm_painel());
 	}
 
 	public Client_info get_client (Client_I c) {
@@ -300,18 +304,21 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		
 		for(Client_info ci : clientes){
 			if(ci.see_console){
-				Message m = new Message("");
-				m.addText("============< ADM CONSOLE >============\n");
-				m.addText("Online Servers: " + count + "\n");
-				m.addText("Top 10 most common searches: \n");
-				m.addText(top_searches.getTop10());
-				m.addText("Average response time: \n");
-				m.addText(Barrel_struct.get_avg_times(barrels, count));
-				m.addText("============< ----------- >============\n");
-
-				ci.c.print_adm_console_on_client(m);
+				ci.c.print_adm_console_on_client(construct_adm_painel());
 			}
 		}
+	}
+
+	public Message construct_adm_painel() {
+		Message m = new Message("");
+		m.addText("============< ADM CONSOLE >============\n");
+		m.addText("Online Servers: " + count + "\n");
+		m.addText("Top 10 most common searches: \n");
+		m.addText(top_searches.getTop10());
+		m.addText("Average response time: \n");
+		m.addText(Barrel_struct.get_avg_times(barrels, count));
+		m.addText("============< ----------- >============\n");
+		return m;
 	}
 
 	/**

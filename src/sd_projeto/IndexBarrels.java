@@ -35,8 +35,6 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		ArrayList<URL_Content> resultado = new ArrayList<>();
 		System.out.println("Request received: " + m);
 
-		int count = 0; // contador para controlar o número de URLs adicionadas
-
 		//printWordsHM();
 
 		for (String word : words) {								// Cada palavra das palavras de pesquisa
@@ -213,28 +211,38 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 		public void Mc_HM_Content() throws java.rmi.RemoteException {
 			System.out.println("Synchorizing");
+			
+			try{
+				MulticastSocket socket = new MulticastSocket(PORT);
+				socket.setReuseAddress(true);
+				InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
+				socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
 
-			send_mc_urls();
-			send_mc_words();
-			send_mc_links();
+				Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+					if (socket != null) 
+						socket.close();
+					
+					System.out.println("Synchorizing terminated by force");
+				}));
 
+				send_mc_urls(socket, mcastaddr);
+				send_mc_words(socket, mcastaddr);
+				send_mc_links(socket, mcastaddr);
+
+				socket.close();
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 
-		private void send_mc_urls() {
-			String content = "";
-			MulticastSocket socket = null;
+		private void send_mc_urls(MulticastSocket socket, InetAddress mcastaddr) {
 			byte[] buffer;
 			DatagramPacket packet;
 
 			try{
 
 				synchronized(urls) {
-
-					socket = new MulticastSocket(PORT);
-					socket.setReuseAddress(true);
-					InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
-					socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
-
 
 					for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
 						//System.out.println(entry.getKey() + " " + entry.getValue());
@@ -244,8 +252,6 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 						packet = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
 						socket.send(packet);
 					}
-
-					socket.close();
 				}
 
 			} catch (IOException e) {
@@ -254,21 +260,13 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 		}
 
-		private void send_mc_words() {
-			String content = "";
-			MulticastSocket socket = null;
+		private void send_mc_words(MulticastSocket socket, InetAddress mcastaddr) {
 			byte[] buffer;
 			DatagramPacket packet;
 
 			try{
 
 				synchronized(words_HM) {
-
-					socket = new MulticastSocket(PORT);
-					socket.setReuseAddress(true);
-					InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
-					socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
-
 
 					for (Map.Entry<String, int[]> entry : words_HM.entrySet()) {
 						//System.out.println(entry.getKey() + " " + entry.getValue());
@@ -288,8 +286,6 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 						packet = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
 						socket.send(packet);
 					}
-
-					socket.close();
 				}
 
 			} catch (IOException e) {
@@ -297,21 +293,13 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			}
 		}
 
-		private void send_mc_links() {
-			String content = "";
-			MulticastSocket socket = null;
+		private void send_mc_links(MulticastSocket socket, InetAddress mcastaddr) {
 			byte[] buffer;
 			DatagramPacket packet;
 
 			try{
 
 				synchronized(links) {
-
-					socket = new MulticastSocket(PORT);
-					socket.setReuseAddress(true);
-					InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
-					socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
-
 
 					for (Map.Entry<Integer, int[]> entry : links.entrySet()) {
 						//System.out.println(entry.getKey() + " " + entry.getValue());
@@ -331,8 +319,6 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 						packet = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
 						socket.send(packet);
 					}
-
-					socket.close();
 				}
 
 			} catch (IOException e) {
@@ -352,11 +338,16 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		@Override
 		public void run(){
 			System.out.println("Sender Initialized!");
+
 			try{
 				MulticastSocket socket = new MulticastSocket(PORT);
 				socket.setReuseAddress(true);
 				InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
 				socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
+
+				Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+					System.out.println("Sender terminated");
+				}));
 
 				while(true){
 					byte[] buffer = new byte[256*2];
@@ -372,7 +363,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				}
 
 			} catch(IOException e){
-				System.out.println("Erro");
+				System.out.println("Erro no Sender");
 			}
 		}
 	}
@@ -395,11 +386,17 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 		private void receive_mc() {
 			boolean check = true;
+			
 			try {
 				MulticastSocket socket = new MulticastSocket(PORT); // create socket and bind it
 				socket.setReuseAddress(true);
 				InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
 				socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
+
+				Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			
+					System.out.println("Receiver terminated");
+				}));
 
 				while(check){
 
@@ -535,6 +532,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 					try {
 						Conection.barrel_disconnect((Barrel_I) h);
 						UnicastRemoteObject.unexportObject(h, true);
+						System.out.println("Barrel " + barrel_id + " terminated!");
 					} catch (RemoteException e) {
 						e.printStackTrace();
 					}
@@ -579,6 +577,10 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				newSocket.setReuseAddress(true);
 				InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
 				newSocket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
+
+				Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+					System.out.println("Deal Packet terminated");
+				}));
 
 				while(keep){
 				

@@ -22,6 +22,8 @@ public class File_Infos implements Serializable {
      */
     public File_Infos() {
         this.file = new File("src\\Index_config.txt");
+        if(!file.exists())
+            this.file = new File("..\\Index_config.txt");
         try {
             this.fileReader = new FileReader(file);
             this.bufferedReader = new BufferedReader(fileReader);

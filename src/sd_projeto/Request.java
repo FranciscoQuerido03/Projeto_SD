@@ -26,7 +26,7 @@ public interface Request extends Remote {
     public void send_request_queue(Client_I c, Message m) throws RemoteException;
 
 
-    public void request_adm_painel(Client_I c) throws RemoteException;
+    public void request_adm_painel(Client_I c, Boolean print) throws RemoteException;
 
     /**
      * ?????????????????????????.
