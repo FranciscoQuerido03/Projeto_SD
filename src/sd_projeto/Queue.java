@@ -4,8 +4,11 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.Function;
 
 /**
  * Implementação de uma fila thread-safe remota em Java usando RMI.
@@ -101,7 +104,15 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
              0.01% probabilidade de falsos positivos
              fonte:https://krisives.github.io/bloom-calculator/
             */
-            bloomFilter = new BloomFilter<>(1917011676, s -> s.hashCode(), s -> s.hashCode() * s.length());
+
+            // Criar uma lista de funções hash
+
+            List<Function<String, Integer>> hashFunctions = Arrays.asList(
+                    s -> s.hashCode(),
+                    s -> s.hashCode() * s.length()
+            );
+
+            bloomFilter = new BloomFilter<>(1917011676, hashFunctions);
 
             System.out.println("Queue ready.");
         } catch (RemoteException re) {

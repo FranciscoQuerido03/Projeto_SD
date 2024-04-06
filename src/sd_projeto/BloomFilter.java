@@ -1,6 +1,7 @@
 package sd_projeto;
 
 import java.util.BitSet;
+import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -14,14 +15,15 @@ import java.util.function.Function;
 public class BloomFilter<T> {
     private BitSet bitSet;
     private int size;
-    private Function<T, Integer>[] hashFunctions;
+    private List<Function<T, Integer>> hashFunctions;
+
 
     /**
      * Construtor para criar um Bloom Filter Thread-Safe.
      * @param size O tamanho do filtro de Bloom.
      * @param hashFunctions As funções de hash a serem usadas para calcular as posições no filtro de Bloom.
      */
-    public BloomFilter(int size, Function<T, Integer>... hashFunctions) {
+    public BloomFilter(int size, List<Function<T, Integer>> hashFunctions) {
         this.size = size;
         this.bitSet = new BitSet(size);
         this.hashFunctions = hashFunctions;
