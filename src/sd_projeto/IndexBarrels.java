@@ -31,34 +31,38 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 	public void request(String m) throws java.rmi.RemoteException {
 		String[] words = m.split(" ");
-		Urls_list not_found_words = new Urls_list(new ArrayList<>());
 		ArrayList<URL_Content> resultado = new ArrayList<>();
 		System.out.println("Request received: " + m);
 
+		HashMap<Integer, Integer> occurrences = new HashMap<>();
+
+		for(String word : words){
+			int[] nums = words_HM.get(word);
+			if(nums != null){
+				for(int i : nums){
+					occurrences.put(i, occurrences.getOrDefault(i, 0) + 1);
+				}
+			}
+		}
+		
 		//printWordsHM();
 
-		for (String word : words) {								// Cada palavra das palavras de pesquisa
-			int[] nums = words_HM.get(word);					// Buscar array de ints que correspondem aos urls que a palavra esta associada
+		for (Map.Entry<Integer, Integer> entry : occurrences.entrySet()) {
+			if(entry.getValue() == words.length){
+				for (Map.Entry<URL_Content, Integer> entry_url : urls.entrySet()) {
+					if (entry_url.getValue() == entry.getKey()) {			// Se o value corresponder entao este url ta associado a palavra
 
-			if(nums != null){									// Nums?
-				for(int num : nums){							// Para cada num
-					for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
-						if (entry.getValue() == num) {			// Se o value corresponder entao este url ta associado a palavra
-
-							for (Map.Entry<Integer, int[]> entry_l : links.entrySet()) {	// Ver quantos url apontam para este url
-								if(entry_l.getKey() == num){
-									entry.getKey().priority = entry_l.getValue().length;
-									resultado.add(entry.getKey());
-									break;
-								}
+						for (Map.Entry<Integer, int[]> entry_l : links.entrySet()) {	// Ver quantos url apontam para este url
+							if(entry_l.getKey() == entry.getKey()){
+								entry_url.getKey().priority = entry_l.getValue().length;
+								resultado.add(entry_url.getKey());
+								break;
 							}
-
-							break;
 						}
+
+						break;
 					}
 				}
-			} else {
-				not_found_words.addUrl(word);
 			}
 		}
 		/*
@@ -69,11 +73,9 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		}
 		 */
 		if (!resultado.isEmpty()) {
-			if(not_found_words.hasValues())
-				Conection.err_no_matches(new Message("No URLs found for: " + not_found_words.wordtoString()));
 			Conection.answer(resultado);
 		} else {
-			Conection.err_no_matches(new Message("No URLs found for the entire input: " + not_found_words.wordtoString()));
+			Conection.err_no_matches(new Message("No URLs found for the input: " + m));
 			Conection.answer(resultado);
 		}
 	}
@@ -623,12 +625,13 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 							insert_links(list, num_aux);
 						}
 
-						if(sections[1].equals("END"))
+						if(sections[1].equals("END")){
 							keep = false;
+						}
 					}
 					
 				}
-
+				System.out.println("Exiting");
 				newSocket.close();
 				
 			} catch (IOException e){
