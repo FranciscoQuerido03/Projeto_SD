@@ -32,7 +32,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	private static QueueInterface queue;
 	private static ReentrantLock lock = new ReentrantLock();
 
-	private static HashMap<Client_I, ArrayList<URL_Content>> results10 = new HashMap<>();
+	private static final HashMap<Client_I, ArrayList<URL_Content>> results10 = new HashMap<>();
 	private static ArrayList<Client_info> clientes;
 
 	public static HashMap<Client_I, ArrayList<URL_Content>> getResults10() {
@@ -196,10 +196,14 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			// Organizar a lista por prioridade
 			m.sort((a, b) -> Integer.compare(b.priority, a.priority));
 			// Adicionar a lista organizada ao HashMap
-			results10.put(client, m);
+			synchronized(results10) {
+				results10.put(client, m);
+			}
 		}
 		else {
-			results10.put(client, new ArrayList<>());
+			synchronized(results10) {
+				results10.put(client, new ArrayList<>());
+			}
 		}
 	}
 
@@ -212,31 +216,50 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 */
 	@Override
 	public void request10(Client_I c, Message m, int indx) throws RemoteException {
-		if (indx < 0) {
-			results10.remove(c);
-			return;
+        //Cliente desconecta-se
+        if (indx < 0) {
+            synchronized (results10) {
+                results10.remove(c);
+            }
+            return;
+        }
+
+        // Verifica se há resultados para o cliente
+        boolean flag;
+        synchronized (results10) {
+            flag = results10.containsKey(c);
 		}
+
 		client = c;
-		// Verifica se há resultados para o cliente
-		if (results10.containsKey(client)) {
-			print_on_client_10(indx);
-		} else {
-			// Se não houver resultados para o cliente, envia uma solicitação
-			send_request_barrels(c, m);
-			print_on_client_10(indx);
-		}
-	}
+
+		if (flag) {
+            print_on_client_10(c,indx);
+        } else {
+            // Se não houver resultados para o cliente, envia uma solicitação aos barrels
+            send_request_barrels(c, m);
+            print_on_client_10(c, indx);
+        }
+    }
 
 	@Override
-	public void print_on_client_10(int indx) throws java.rmi.RemoteException {
+	public void print_on_client_10(Client_I c ,int indx) throws java.rmi.RemoteException {
 
 		ArrayList<URL_Content> contentToSend = new ArrayList<>();
 
-		if (!results10.containsKey(client)) {
+		boolean flag;
+		synchronized (results10) {
+			flag = results10.containsKey(c);
+		}
+
+		if (!flag) {
 			return;
 		}
 
-		ArrayList<URL_Content> results = results10.get(client);
+		ArrayList<URL_Content> results;
+
+		synchronized (results10) {
+			results = results10.get(c);
+		}
 
 		if (results.isEmpty()) {
 			return;
@@ -251,7 +274,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		}
 
 		// Envie o ArrayList contentToSend para o cliente
-		client.print_on_client(contentToSend);
+		c.print_on_client(contentToSend);
 	}
 
 	/**
