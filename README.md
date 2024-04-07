@@ -1,9 +1,9 @@
 Compile/Run instructions <br>
 
 1) Navegar até à diretoria que contenha os ficheiros e executar o seguinte comando: <br>
-javac -cp "<path>\jsoup-1.17.2.jar" -d . *.java , onde <br>
+javac -cp "path\jsoup-1.17.2.jar" -d . *.java , onde <br>
 
-<path> = caminho até ao jar file do jsoup<br>
+path = caminho até ao jar file do jsoup<br>
 
 Exemplo:<br>
 javac -cp "C:\Users\luism\Downloads\jsoup-1.17.2.jar" -d . *.java <br>
