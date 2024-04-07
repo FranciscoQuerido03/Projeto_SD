@@ -180,7 +180,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	}
 
 	/**
-	 * ??????????????????????????????????????????
+	 * Função utilizada para o gateway inscrever o barrel e atualizar alguns dados importantes
 	 * @param barrel O barril a ser inscrito.
 	 * @param id O ID do barril.
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
@@ -393,6 +393,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 * Método main que inicia o Gateway.
 	 */
 	public static void main(String args[]) {
+		
 		try {
 			File_Infos f = new File_Infos();
 			f.get_data("GateWay");
@@ -404,7 +405,9 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			LocateRegistry.createRegistry(1098).rebind(f.Registo[1], h);
 			System.out.println("GateWay ready.");
 		} catch (RemoteException | MalformedURLException | NotBoundException re) {
-			System.out.println("Exception in GateWay.main: " + re);
+			System.out.println("Queue desligada");
+			System.exit(1);
+			return;
 		}
 	}
 }
