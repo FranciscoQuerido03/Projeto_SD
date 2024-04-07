@@ -56,6 +56,13 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		queue = (QueueInterface) Naming.lookup(f.lookup[0]);
 	}
 
+	public boolean can_join() throws RemoteException {
+		if(count >= NUM_BARRELS)
+			return false;
+		else
+			return true;
+	}
+
 	/**
 	 * Método para desconectar um barrel.
 	 * @param barrel O barrel a ser desconectado.

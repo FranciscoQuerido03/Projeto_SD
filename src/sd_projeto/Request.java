@@ -108,4 +108,6 @@ public interface Request extends Remote {
      * @throws RemoteException se ocorrer um erro durante a comunicação remota.
      */
     public void answer_pointers(ArrayList<URL_Content> urlsPointingTo) throws RemoteException;
+
+    public boolean can_join() throws RemoteException;
 }

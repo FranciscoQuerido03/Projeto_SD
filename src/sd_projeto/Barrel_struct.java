@@ -26,7 +26,7 @@ public class Barrel_struct {
     public static int remove_barrel(Barrel_struct[] lista, Barrel_I barrel, int count) {
         for(int i = 0; i<count; i++){
             if(lista[i].barrel.equals(barrel)){
-                for(int j=0; j+i<count; j++){
+                for(int j=0; j+i<count-1; j++){
                     lista[i+j].barrel = lista[j+i+1].barrel;
                     lista[i+j].avg_time = lista[j+i+1].avg_time;
                     lista[i+j].barrel_id = lista[j+i+1].barrel_id;
