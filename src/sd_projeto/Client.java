@@ -100,7 +100,7 @@ public class Client extends UnicastRemoteObject implements Client_I {
 			Request Conection = (Request) Naming.lookup(NAMING);
 			Conection.client_connect(c);
 
-			while(keepItgoin){
+			while(keepItgoin) {
 
 				System.out.println("\nSelecione uma opção:");
 				System.out.println("[1] search <search query>");
@@ -110,45 +110,50 @@ public class Client extends UnicastRemoteObject implements Client_I {
 				System.out.println("[5] exit\n");
 
 
-				String str = scanner.nextLine();
+				if (scanner.hasNextLine()) {
+					String str = scanner.nextLine();
 
-				String[] parts = str.split(" ");
-				String data = String.join(" ", Arrays.copyOfRange(parts, 1, parts.length));
 
-				Message conteudo = new Message(data);
+					String[] parts = str.split(" ");
+					String data = String.join(" ", Arrays.copyOfRange(parts, 1, parts.length));
 
-				switch (parts[0]) {
-					case "1":
-						System.out.println("\nSearching " + conteudo + "...\n");
-						conteudo = new Message(removeStopWords(conteudo.toString()));
-						searchBarrels(c, Conection, conteudo);
-						break;
-					case "2":
-						if(checkUrl(conteudo)) {
-							System.out.println("\nIndexing " + conteudo + "...\n");
-							Conection.send_request_queue(c, conteudo);
-						}
-						break;
-					case "3":
-						if(checkUrl(conteudo)) {
-							System.out.println("\nSearching...");
-							searchPointers(c, Conection, conteudo);
-						}
-						break;
-					case "4":
-                        Conection.request_adm_painel(c, true);
-                        adm_painel_handler();
-                        Conection.request_adm_painel(c, false);
-                        break;
-					case "5":
-						System.out.println("Terminado");
-						scanner.close();
-						UnicastRemoteObject.unexportObject(c, true);
-						keepItgoin = false;
-						break;
-					default:
-						System.out.println("Comando inválido");
-						break;
+					Message conteudo = new Message(data);
+
+					switch (parts[0]) {
+						case "1":
+							System.out.println("\nSearching " + conteudo + "...\n");
+							conteudo = new Message(removeStopWords(conteudo.toString()));
+							searchBarrels(c, Conection, conteudo);
+							break;
+						case "2":
+							if (checkUrl(conteudo)) {
+								System.out.println("\nIndexing " + conteudo + "...\n");
+								Conection.send_request_queue(c, conteudo);
+							}
+							break;
+						case "3":
+							if (checkUrl(conteudo)) {
+								System.out.println("\nSearching...");
+								searchPointers(c, Conection, conteudo);
+							}
+							break;
+						case "4":
+							Conection.request_adm_painel(c, true);
+							adm_painel_handler();
+							Conection.request_adm_painel(c, false);
+							break;
+						case "5":
+							System.out.println("Terminado");
+							scanner.close();
+							UnicastRemoteObject.unexportObject(c, true);
+							keepItgoin = false;
+							break;
+						default:
+							System.out.println("Comando inválido");
+							break;
+					}
+				}else {
+					System.exit(1);
 				}
 			}
 
