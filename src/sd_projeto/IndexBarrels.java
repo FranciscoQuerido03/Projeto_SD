@@ -9,6 +9,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Classe dos barrels
+ */
 public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 	static HashMap<URL_Content, Integer> urls = new HashMap<>();
@@ -24,11 +27,21 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	public static int numBarrels;
 	public static int id;
 
+	/**
+	 * Construtor da classe IndexBarrels
+	 * @param num	id do barrel
+	 * @throws RemoteException
+	 */
 	public IndexBarrels(int num) throws RemoteException {
 		super();
 		id = num;
 	}
 
+	/**
+	 * Função responsável por tratar dos pedidos do cliente
+	 * @param m	Pedido do cliente
+	 * @return Urls correspondentes / Mensagem de erro caso não hajam correspondências
+	 */
 	public void request(String m) throws java.rmi.RemoteException {
 		String[] words = m.split(" ");
 		ArrayList<URL_Content> resultado = new ArrayList<>();
@@ -80,6 +93,11 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		}
 	}
 
+	/**
+	 * Função que retorna os links que apontam para um Url
+	 * @param clientRequest url introduzido pelo cliente
+	 * @return Urls correspondentes / Mensagem de erro caso não hajam correspondências
+	 */
 	@Override
 	public void links_pointing_to(String clientRequest) throws RemoteException {
 
@@ -111,11 +129,9 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		Conection.answer_pointers(urlsPointingTo);
 	}
 
-
-	/*
-	 * 	<Debug Functions>
+	/**
+	 * Função Debug que printa o HashMap Urls
 	 */
-
 	public static void printUrls() {
 		System.out.println("\nUrls:\n");
 		for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
@@ -126,6 +142,9 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		System.out.println();
 	}
 
+	/**
+	 * Função Debug que printa o HashMap Words
+	 */
 	public static void printWordsHM() {
 		System.out.println("\nWords_HM:\n");
 		for (Map.Entry<String, int[]> entry : words_HM.entrySet()) {
@@ -138,6 +157,9 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		System.out.println();
 	}
 
+	/**
+	 * Função Debug que printa o HashMap Links
+	 */
 	public static void printLinks() {
 		System.out.println("\nLINKS:\n");
 		for (Map.Entry<Integer, int[]> entry : links.entrySet()) {
@@ -149,10 +171,6 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		}
 		System.out.println();
 	}
-
-	/*
-	 * 	<\Debug Functions>
-	 */
 
 	// =======================================================
 
@@ -192,6 +210,9 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 	}
 
+	/**
+	 * Classe responsável por enviar os conteudos das hashmaps via multicast
+	 */
 	static class Barrel_Send_HMs implements Runnable {
 
 		private final int barrel_id;
@@ -211,6 +232,10 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 		}
 
+		/**
+		 * Função responsável por chamar cada uma das funções que trata do enviar os conteudos dos hashmaps por multicast
+		 * @throws java.rmi.RemoteException
+		 */
 		public void Mc_HM_Content() throws java.rmi.RemoteException {
 			System.out.println("Synchorizing");
 			
@@ -238,6 +263,11 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			}
 		}
 
+		/**
+		 * Função responsável por enviar os conteudos por multicast da hashmap URL
+		 * @param socket	Socket utilizada para enviar os conteudos
+		 * @param mcastaddr	Parametro neccessário para criar o datagram packet
+		 */
 		private void send_mc_urls(MulticastSocket socket, InetAddress mcastaddr) {
 			byte[] buffer;
 			DatagramPacket packet;
@@ -262,6 +292,11 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 		}
 
+		/**
+		 * Função responsável por enviar os conteudos por multicast da hashmap Words
+		 * @param socket	Socket utilizada para enviar os conteudos
+		 * @param mcastaddr	Parametro neccessário para criar o datagram packet
+		 */
 		private void send_mc_words(MulticastSocket socket, InetAddress mcastaddr) {
 			byte[] buffer;
 			DatagramPacket packet;
@@ -295,6 +330,11 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			}
 		}
 
+		/**
+		 * Função responsável por enviar os conteudos por multicast da hashmap Links
+		 * @param socket	Socket utilizada para enviar os conteudos
+		 * @param mcastaddr	Parametro neccessário para criar o datagram packet
+		 */
 		private void send_mc_links(MulticastSocket socket, InetAddress mcastaddr) {
 			byte[] buffer;
 			DatagramPacket packet;
@@ -329,14 +369,25 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		}
 	}
 
+	/**
+	 * Classe responsável por detetar a necessidade de sincronização
+	 */
 	static class Barrel_Multicast_Sender implements Runnable {
 		private final int barrel_id;
 
+		/**
+		 * Construtor da classe Barrel_Multicast_Sender
+		 * @param barrel_id	id do Barrel
+		 */
 		public Barrel_Multicast_Sender(int barrel_id){
 			super();
 			this.barrel_id = barrel_id;
 		}
 
+		/**
+		 * Função que fica a espera de receber um pacote com o conteudo Sync para dar inicio á sincronizaçao de barrels.
+		 * Ao detetar o pacote cria uma thread que trata de fazer o multicast
+		 */
 		@Override
 		public void run(){
 			System.out.println("Sender Initialized!");
@@ -370,9 +421,16 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		}
 	}
 
+	/**
+	 * Classe que trata de receber pacotes provenientes da socket multicast de modo a atualizar as hashmaps
+	 */
 	static class Barrel_Multicast_Receiver implements Runnable {
 		private final int barrel_id;
 
+		/**
+		 * Construtor da classe Barrel_Multicast_Receiver
+		 * @param barrel_id
+		 */
 		public Barrel_Multicast_Receiver(int barrel_id){
 			super();
 			this.barrel_id = barrel_id;
@@ -386,6 +444,10 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 		}
 
+		/**
+		 * Fica constantemente à escuta de pacotes começados com uma das 3 keywords para atualizar as hashmaps
+		 * Keywords: Sync_url Sync_word Sync_link
+		 */
 		private void receive_mc() {
 			boolean check = true;
 			
@@ -424,6 +486,10 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			}
 		}
 
+		/**
+		 * Faz update da hashmap Words
+		 * @param m	conteudo do pacote multicast a ser processado
+		 */
 		public void Update_word_HM(String m) {
 			String[] aux = m.split("\n");
 			String[] sections = aux[1].split(" ");
@@ -447,6 +513,10 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			}
 		}
 
+		/**
+		 * Faz update da hashmap Links
+		 * @param m	conteudo do pacote multicast a ser processado
+		 */
 		public void Update_link_HM(String m) {
 			String[] aux = m.split("\n");
 			String[] sections = aux[1].split(" ");
@@ -470,6 +540,10 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			}
 		}
 
+		/**
+		 * Faz update da hashmap Url
+		 * @param m	conteudo do pacote multicast a ser processado
+		 */
 		private void Update_url_HM(String m) {
 			String[] sections = m.split("\n");
 			URL_Content u;
@@ -497,17 +571,31 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 	}
 
+	/**
+	 * Classe representante dos barrels.
+	 */
 	static class Barrel_Function implements Runnable {
 		private final int barrel_id;
 		private static int count_urls = 0;
 		private static MulticastSocket socket = null;
 		private IndexBarrels h;
 
+		/**
+		 * Construtor da classe Barrel_Function
+		 * @param barrel_id	id do barrel
+		 */
 		public Barrel_Function(int barrel_id){
 			super();
 			this.barrel_id = barrel_id;
 		}
 
+		/**
+		 * Cria um novo barrel
+		 * Cria uma thread para enviar pacotes de sync multicast
+		 * Cria uma thread para receber pacotes de sync multicast
+		 * Faz subscribe
+		 * Fica permanentemente à escuta da key_word Data_New: para criar uma nova thread que recebe os pacotes multicast dos downloaders
+		 */
 		@Override
 		public void run(){
 
@@ -565,6 +653,10 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			}
 		}
 
+		/**
+		 * Função responsável por tratar dos pacotes provenientes dos downloaders
+		 * @param url	Url que está a ser tratado
+		 */
 		private static void DealPacket(String url) {
 			//System.out.println(message);
 			//String[] words = message.split("\n");
@@ -579,10 +671,6 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				newSocket.setReuseAddress(true);
 				InetAddress mcastaddr = InetAddress.getByName(MULTICAST_ADDRESS);
 				newSocket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
-
-				Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-					System.out.println("Deal Packet terminated");
-				}));
 
 				while(keep){
 				
@@ -650,6 +738,11 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			//System.out.println("\n==========================\n");
 		}
 
+		/**
+		 * Funçao que insere dados no hashmap links
+		 * @param list_url_a 	Lista de Urls que constam no Url principal
+		 * @param aux_url_num	Inteiro que identifica o URL principal na hashmap Urls
+		 */
 		public static void insert_links(String list_url_a[], int aux_url_num) {
 			URL_Content new_url;
 			int aux_url_num2;
@@ -684,6 +777,11 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 		}
 
+		/**
+		 * Funçao que insere dados no hashmap words
+		 * @param list			Lista de palavras que a inserir na hashtable
+		 * @param aux_url_num	Inteiro que identifica o URL principal na hashmap Urls
+		 */
 		public static void insert_words(String list[], int aux_url_num) {
 			synchronized(words_HM){
 				for(String w : list){		//Para cada palavra que o utilizador introduziu
@@ -706,6 +804,11 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			}
 		}
 
+		/**
+		 * Funçao que insere dados no hashmap url
+		 * @param new_url	Novo url a indexar
+		 * @return			Inteiro que referencia o url indexado
+		 */
 		public static int insert_url(URL_Content new_url) {
 			URL_Content aux;
 			int aux_url_num;
@@ -726,6 +829,11 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			return aux_url_num;
 		}
 
+		/**
+		 * Função que procura um certo url no hashmap urls
+		 * @param url	url a procurar
+		 * @return		Estrutura que contem o url
+		 */
 		public static URL_Content searchByUrl(String url) {
 			synchronized(urls){
 				for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
@@ -738,6 +846,11 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			}
 		}
 
+		/**
+		 * Função que procura um url no hashmap urls e devolve o inteiro que o representa
+		 * @param url	url a procurar
+		 * @return		Inteiro que referenciac o url / Inteiro inválido caso nao exista
+		 */
 		public static int get_num(String url) {
 			for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
 				URL_Content urlContent = entry.getKey();
@@ -748,6 +861,12 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			return -1; // NUM not found
 		}
 
+		/**
+		 * Funçao que verifica se um certo número existe ou não numa lista de números
+		 * @param nums 	lista de inteiros
+		 * @param num	inteiro
+		 * @return	true / false
+		 */
 		private static boolean check(int[] nums, int num) {
 			for(int i = 0; i<nums.length; i++)
 				if(nums[i] == num)

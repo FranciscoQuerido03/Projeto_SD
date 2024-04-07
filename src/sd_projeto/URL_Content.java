@@ -31,13 +31,19 @@ public class URL_Content implements Serializable {
         this.citacao = s;
     }
 
-
+    /**
+     * Adiciona um Url
+     * @param u conteudo
+     */
     public void addUrl(URL_Content u) {
         this.title = u.title;
         this.url = u.url;
     }
 
-
+    /**
+     * Verifica se tem valores
+     * @return  true / false
+     */
     public boolean hasValues() {
         return this.url != null;
     }

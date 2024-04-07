@@ -25,11 +25,17 @@ public interface Request extends Remote {
      */
     public void send_request_queue(Client_I c, Message m) throws RemoteException;
 
-
+    /**
+     * Método para o cliente dizer ao Gateway que quer ver a adm console
+     * O boolean é para o Gateway saber se deve enviar logo a mensagem para o cliente ou não
+     * @param c         Cliente
+     * @param print     True / False
+     * @throws RemoteException
+     */
     public void request_adm_painel(Client_I c, Boolean print) throws RemoteException;
 
     /**
-     * ?????????????????????????.
+     * Método usado para o barrel dizer ao gateway que está disponivel
      * @param barrel O barril a ser inscrito.
      * @param id O identificador do barril.
      * @throws RemoteException se ocorrer um erro durante a comunicação remota.
@@ -109,5 +115,10 @@ public interface Request extends Remote {
      */
     public void answer_pointers(ArrayList<URL_Content> urlsPointingTo) throws RemoteException;
 
+    /**
+     * Método para verificar se ainda há espaço na lista de barrels para adicionar mais 1
+     * @return  True / False
+     * @throws RemoteException
+     */
     public boolean can_join() throws RemoteException;
 }
