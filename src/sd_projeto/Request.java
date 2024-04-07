@@ -68,4 +68,6 @@ public interface Request extends Remote {
    public void links_pointing_to(Client_I c, Message conteudo) throws RemoteException;
 
     public void answer_pointers(ArrayList<URL_Content> urlsPointingTo) throws RemoteException;
+
+    public boolean can_join() throws RemoteException;
 }

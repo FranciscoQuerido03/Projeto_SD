@@ -175,8 +175,12 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				System.exit(1);
 			}
 
-			Thread barrel = new Thread(new Barrel_Function(id));
-			barrel.start();		
+			if(Conection.can_join()){
+				Thread barrel = new Thread(new Barrel_Function(id));
+				barrel.start();		
+			}else{
+				System.out.println("No more Barrels allowed");
+			}
 
 		} catch (RemoteException re) {
 			System.out.println("Exception in GateWay.main: " + re);
