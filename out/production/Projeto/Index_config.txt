@@ -1,5 +1,5 @@
 <GateWay>
-NUM_BARRELS: 4
+NUM_BARRELS: 2
 ADDRESS: 224.3.2.1
 PORT: 4321
 Registo1: request_barrel

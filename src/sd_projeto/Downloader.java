@@ -92,6 +92,7 @@ public class Downloader extends Thread {
      */
     public static void main(String[] args) throws RemoteException, NotBoundException, UnknownHostException, MalformedURLException {
 
+        try {
         File_Infos f = new File_Infos();
         f.get_data("Downloader");
 
@@ -99,7 +100,6 @@ public class Downloader extends Thread {
             System.out.println("Erro na leitura do arquivo de configuração");
             return;
         }
-
 
         MULTICAST_ADDRESS = f.Address;
         PORT = f.Port;
@@ -111,6 +111,12 @@ public class Downloader extends Thread {
 
         new Downloader();
         System.out.println("Downloader ready.");
+
+        } catch (RemoteException | MalformedURLException | NotBoundException re) {
+            System.out.println("Queue desligada");
+            System.exit(1);
+            return;
+        }
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             for (Thread t : Thread.getAllStackTraces().keySet()) {

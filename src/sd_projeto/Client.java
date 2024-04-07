@@ -152,14 +152,10 @@ public class Client extends UnicastRemoteObject implements Client_I {
 				}
 			}
 
-		} catch (RemoteException re) {
-			System.out.println("Exceção em GateWay.main: " + re);
-		} catch (MalformedURLException e) {
-			System.out.println("MalformedURLException em GateWay.main: " + e);
-		} catch (NotBoundException e) {
-			System.out.println("NotBoundException em GateWay.main: " + e);
+		} catch (RemoteException | MalformedURLException | NotBoundException re) {
+			System.out.println("Gateway desligada");
+			System.exit(1);
 		}
-
 	}
 
 	/**

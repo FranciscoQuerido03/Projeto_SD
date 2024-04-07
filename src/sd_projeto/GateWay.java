@@ -412,7 +412,6 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		} catch (RemoteException | MalformedURLException | NotBoundException re) {
 			System.out.println("Queue desligada");
 			System.exit(1);
-			return;
 		}
 	}
 }
