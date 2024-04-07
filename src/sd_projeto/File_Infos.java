@@ -8,8 +8,8 @@ import java.io.*;
  */
 public class File_Infos implements Serializable {
     public String Address;
-    public int Port;
-    public int NUM_BARRELS;
+    public int Port = -1;
+    public int NUM_BARRELS = -1;
     public String Registo[];
     public String lookup[];
 
@@ -17,23 +17,27 @@ public class File_Infos implements Serializable {
     private FileReader fileReader;
     private BufferedReader bufferedReader;
 
+    public boolean goodRead;
+
     /**
      * Construtor para criar um objeto File_Infos e inicializar a leitura do arquivo de configuração.
      */
     public File_Infos() {
         this.file = new File("src\\Index_config.txt");
-        if(!file.exists())
+        if (!file.exists())
             this.file = new File("..\\Index_config.txt");
         try {
             this.fileReader = new FileReader(file);
             this.bufferedReader = new BufferedReader(fileReader);
         } catch (IOException e) {
             System.out.println("Erro na leitura do arquivo de configuração");
+            this.goodRead = false;
         }
     }
 
     /**
      * Obtém os dados do arquivo de configuração.
+     *
      * @param s A seção específica a ser lida do arquivo.
      */
     public void get_data(String s) {
@@ -43,9 +47,12 @@ public class File_Infos implements Serializable {
         String search = "<" + s + ">";
         String search_f = "<\\" + s + ">";
 
+        boolean exists = false;
+
         try {
             while ((line = this.bufferedReader.readLine()) != null) {
                 if (line.equals(search)) {
+                    exists = true;
                     while ((line = this.bufferedReader.readLine()) != null) {
                         sections = line.split(" ");
 
@@ -72,12 +79,33 @@ public class File_Infos implements Serializable {
                             this.Registo[1] = sections[1];
 
                         if (sections[0].equals(search_f))
-                            return;
+                            break;
                     }
                 }
             }
+            switch (s) {
+                case "Client":
+                    this.goodRead = this.lookup != null && exists;
+                    break;
+                case "GateWay":
+                    this.goodRead = this.NUM_BARRELS > 0 && this.Address != null && this.Port > 0 && this.Registo != null && this.lookup != null && exists;
+                    break;
+                case "Barrel":
+                    this.goodRead = this.Address != null && this.Port > 0 && this.lookup != null && exists;
+                    break;
+                case "Queue":
+                    this.goodRead = this.Registo != null && exists;
+                    break;
+                case "Downloader":
+                    this.goodRead = this.NUM_BARRELS > 0 && this.Address != null && this.Port > 0 && this.lookup != null && exists;
+                    break;
+                default:
+                    this.goodRead = false;
+            }
+
         } catch (IOException e) {
             System.out.println("Erro durante a leitura do arquivo");
+            this.goodRead = false;
         }
     }
 

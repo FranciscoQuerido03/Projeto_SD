@@ -389,6 +389,11 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			File_Infos f = new File_Infos();
 			f.get_data("GateWay");
 
+			if (!f.goodRead) {
+				System.out.println("Erro na leitura do arquivo de configuração");
+				return;
+			}
+
 			MULTICAST_ADDRESS = f.Address;
 			PORT = f.Port;
 			GateWay h = new GateWay(f);
