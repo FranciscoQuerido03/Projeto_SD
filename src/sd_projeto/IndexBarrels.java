@@ -193,7 +193,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			try{
 				id = Integer.parseInt(args[0]);
 			} catch (NumberFormatException | ArrayIndexOutOfBoundsException e){
-				System.err.println("Falta o id do barrel cuh");
+				System.err.println("Falta o id do barrel");
 				System.exit(1);
 			}
 
