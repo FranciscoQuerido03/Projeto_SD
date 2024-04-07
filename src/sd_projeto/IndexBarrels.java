@@ -206,12 +206,9 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 				System.out.println("No more Barrels allowed");
 			}
 
-		} catch (RemoteException re) {
-			System.out.println("Exception in GateWay.main: " + re);
-		} catch (MalformedURLException e) {
-			System.out.println("MalformedURLException in GateWay.main: " + e);
-		} catch (NotBoundException e) {
-			System.out.println("NotBoundException in GateWay.main: " + e);
+		} catch (RemoteException | MalformedURLException | NotBoundException re) {
+			System.out.println("GateWay desligada");
+			System.exit(1);
 		}
 
 	}
