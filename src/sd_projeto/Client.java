@@ -42,11 +42,8 @@ public class Client extends UnicastRemoteObject implements Client_I {
 	 * Inicializa o cliente e carrega as informações de registo.
 	 * @throws RemoteException se ocorrer um erro durante a criação do objeto remoto.
 	 */
-	public Client() throws RemoteException {
+	public Client(File_Infos f) throws RemoteException {
 		super();
-		File_Infos f = new File_Infos();
-		f.get_data("Client");
-
 		NAMING = f.lookup[0];
 	}
 
@@ -88,7 +85,15 @@ public class Client extends UnicastRemoteObject implements Client_I {
 	public static void main(String args[]) {
 
 		try {
-			Client c = new Client();
+			File_Infos f = new File_Infos();
+			f.get_data("Client");
+
+			if (!f.goodRead) {
+				System.out.println("Erro na leitura do arquivo de configuração");
+				return;
+			}
+
+			Client c = new Client(f);
 			boolean keepItgoin = true;
 
 			Scanner scanner = new Scanner(System.in);

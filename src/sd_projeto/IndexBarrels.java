@@ -178,7 +178,13 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 		try {
 			File_Infos f = new File_Infos();
+
 			f.get_data("Barrel");
+
+			if (!f.goodRead) {
+				System.out.println("Erro na leitura do arquivo de configuração");
+				return;
+			}
 
 			NAMING_URL = f.lookup[0];
 			MULTICAST_ADDRESS = f.Address;

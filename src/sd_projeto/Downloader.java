@@ -95,6 +95,12 @@ public class Downloader extends Thread {
         File_Infos f = new File_Infos();
         f.get_data("Downloader");
 
+        if (!f.goodRead) {
+            System.out.println("Erro na leitura do arquivo de configuração");
+            return;
+        }
+
+
         MULTICAST_ADDRESS = f.Address;
         PORT = f.Port;
         NUM = f.NUM_BARRELS;

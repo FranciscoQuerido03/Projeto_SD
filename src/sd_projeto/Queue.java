@@ -30,11 +30,8 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
      * Inicializa a fila e carrega as informações de registo.
      * @throws RemoteException se ocorrer um erro ao criar o objeto remoto.
      */
-    protected Queue() throws RemoteException {
+    protected Queue(File_Infos f) throws RemoteException {
         queue = new ConcurrentLinkedDeque<>();
-
-        File_Infos f = new File_Infos();
-        f.get_data("Queue");
 
         NAMING_DOWNLOADER = f.Registo[0];
         NAMING_GATEWAY = f.Registo[1];
@@ -94,7 +91,15 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
      */
     public static void main(String[] args) {
         try {
-            Queue q = new Queue();
+            File_Infos f = new File_Infos();
+            f.get_data("Queue");
+
+            if (!f.goodRead) {
+                System.out.println("Erro na leitura do arquivo de configuração");
+                return;
+            }
+
+            Queue q = new Queue(f);
 
             LocateRegistry.createRegistry(1096).rebind(NAMING_DOWNLOADER, q);
             LocateRegistry.createRegistry(1097).rebind(NAMING_GATEWAY, q);
