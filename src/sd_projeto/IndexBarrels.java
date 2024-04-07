@@ -40,8 +40,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	/**
 	 * Função responsável por tratar dos pedidos do cliente
 	 * @param m	Pedido do cliente
-	 * @return Urls correspondentes / Mensagem de erro caso não hajam correspondências
-	 */
+     */
 	public void request(String m) throws java.rmi.RemoteException {
 		String[] words = m.split(" ");
 		ArrayList<URL_Content> resultado = new ArrayList<>();
@@ -96,8 +95,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	/**
 	 * Função que retorna os links que apontam para um Url
 	 * @param clientRequest url introduzido pelo cliente
-	 * @return Urls correspondentes / Mensagem de erro caso não hajam correspondências
-	 */
+     */
 	@Override
 	public void links_pointing_to(String clientRequest) throws RemoteException {
 

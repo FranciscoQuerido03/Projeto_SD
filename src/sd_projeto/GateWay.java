@@ -361,7 +361,6 @@ public class GateWay extends UnicastRemoteObject implements Request {
 
 	/**
 	 * Método para fornecer o painel de administração do sistema ao cliente.
-	 * @return Uma mensagem com informações sobre o sistema.
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
 	public void adm_painel() throws RemoteException {
