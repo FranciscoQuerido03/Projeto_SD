@@ -1,20 +1,26 @@
-#Compile instructions:
+Compile/Run instructions <br>
 
-javac -d . *.java<br>
-java -cp . .\name.java<br>
+1) Navegar até à diretoria que contenha os ficheiros e executar o seguinte comando: <br>
+javac -cp "<path>\jsoup-1.17.2.jar" -d . *.java , onde <br>
 
-#Files x-planation:<br>
+<path> = caminho até ao jar file do jsoup<br>
 
-##Client.java -> Client program which requests for web content<br>
-###Functions:<br>
--> Communicates with GateWay via RMI<br>
+Exemplo:<br>
+javac -cp "C:\Users\luism\Downloads\jsoup-1.17.2.jar" -d . *.java <br>
 
-##GateWay.java -> Component which stands in the middle of the client and the system responsable for acquiring the content.<br>
-###Functions:<br>
--> Communicates with client via RMI<br>
--> Communicates with index barrels via RMI<br>
--> Adds urls to the queue(deque) when necessary<br>
+2) Executar a Queue: <br>
+java -cp . .\Queue.java <br>
 
-##Message.java -> Java class which has the data type necessary for Client <-> GateWay Comms.<br>
+3) Executar GateWay e Downloaders: <br>
 
-##Request.java -> Interface for Client <-> Gateway Comms.<br>
+GateWay: java -cp . .\GateWay.java <br>
+Downloaders: java -cp ".;<path>\jsoup-1.17.2.jar;." .\Downloader.java  (1 por terminal) <br>
+
+4) Executar Barrels e Clientes: <br>
+
+<id> = Número inteiro 
+
+Barrels: java -cp . .\IndexBarrels.java <id> <br>
+Clientes: java -cp . .\Client.java <br>
+
+NOTA: Para o bom funcionamento da aplicação é importante a execução dos componentes seguir a ordem especificada.
