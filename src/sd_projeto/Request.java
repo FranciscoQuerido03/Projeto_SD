@@ -57,15 +57,55 @@ public interface Request extends Remote {
      */
     public void barrel_disconnect(Barrel_I barrel) throws RemoteException;
 
+    /**
+     * Conecta um cliente ao servidor.
+     *
+     * @param c O cliente a ser conectado.
+     * @throws RemoteException se ocorrer um erro durante a comunicação remota.
+     */
     public void client_connect(Client_I c) throws RemoteException;
 
+    /**
+     * Desconecta um cliente do servidor.
+     *
+     * @param c O cliente a ser desconectado.
+     * @throws RemoteException se ocorrer um erro durante a comunicação remota.
+     */
     public void client_disconnect(Client_I c) throws RemoteException;
 
+    /**
+     * Permite ao cliente solicitar a impressão de uma lista de URLs apresentando os resultados da pesquisa em partes de 10.
+     *
+     * @param c     O cliente que fez a solicitação.
+     * @param m     A mensagem com a solicitação.
+     * @param indx  Index para calcular o conjunto de 10 URLs a enviar.
+     * @throws RemoteException se ocorrer um erro durante a comunicação remota.
+     */
     public void request10(Client_I c, Message m, int indx) throws RemoteException;
 
+    /**
+     * Envia 10 resultados ao cliente para serem exibidos.
+     *
+     * @param c    O cliente que receberá os resultados.
+     * @param indx A posição inicial na lista de URLs.
+     * @throws RemoteException se ocorrer um erro durante a comunicação remota.
+     */
     public void print_on_client_10(Client_I c, int indx) throws RemoteException;
 
-   public void links_pointing_to(Client_I c, Message conteudo) throws RemoteException;
+    /**
+     * Solicita a obtenção dos links que apontam para um determinado URL.
+     *
+     * @param c       O cliente que fez a solicitação.
+     * @param conteudo A mensagem com o URL alvo.
+     * @throws RemoteException se ocorrer um erro durante a comunicação remota.
+     */
+    public void links_pointing_to(Client_I c, Message conteudo) throws RemoteException;
 
+    /**
+     * Envia os links que apontam para um URL específico ao cliente.
+     *
+     * @param urlsPointingTo A lista de links que apontam para o URL alvo.
+     * @throws RemoteException se ocorrer um erro durante a comunicação remota.
+     */
     public void answer_pointers(ArrayList<URL_Content> urlsPointingTo) throws RemoteException;
 }

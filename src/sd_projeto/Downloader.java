@@ -20,6 +20,11 @@ import java.util.stream.Collectors;
 import static java.lang.Integer.parseInt;
 
 
+/**
+ * Classe Downloader
+ * Faz a análise de páginas web e envia os dados para o grupo multicast
+ */
+
 public class Downloader extends Thread {
     private static String MULTICAST_ADDRESS;
     private static String NAMING;
@@ -51,25 +56,40 @@ public class Downloader extends Thread {
     );
 
 
+    /**
+     * Construtor da classe Downloader
+     * @throws RemoteException
+     */
     public Downloader() throws RemoteException {
         setName("Downloader ");
         start();
     }
 
-    // Função para remover as stopwords de um texto
+    /**
+     * Remove as stop words de um texto
+     * @param text texto a ser filtrado
+     * @return texto sem stop words
+     */
     private static String removeStopWords(String text) {
         String[] words = text.split("[\\s,.():;|_!?<>«»\"\'-/]+");
         List<String> filteredWords = new ArrayList<>();
         for (String word : words) {
             if (!stopWords.contains(word.toLowerCase())) {
                 if(word.length() > 2)
-                    filteredWords.add(word);         
+                    filteredWords.add(word);
             }
         }
         return String.join(" ", filteredWords);
     }
 
-
+    /**
+     * Método main da classe Downloader que inicia o downloader
+     * @param args
+     * @throws RemoteException
+     * @throws NotBoundException
+     * @throws UnknownHostException
+     * @throws MalformedURLException
+     */
     public static void main(String[] args) throws RemoteException, NotBoundException, UnknownHostException, MalformedURLException {
 
         File_Infos f = new File_Infos();
@@ -96,9 +116,11 @@ public class Downloader extends Thread {
         }));
     }
 
+    /**
+     * Metodo run da classe Downloader que retira URLs da Queue, analisa as páginas web e envia os dados para o grupo multicast
+     */
     @Override
     public void run() {
-        boolean flag;
         String url;
 
         try {
@@ -199,13 +221,13 @@ public class Downloader extends Thread {
         }
     }
 
+    /**
+     * Verifica se o URL é válido
+     * @param url URL a ser verificado
+     * @return true se o URL é válido, false caso contrário
+     */
     private boolean correctURL(String url) {
         return url.startsWith("http://") || url.startsWith("https://");
     }
 
-
-
-    private static void print(String msg, Object... args) {
-        System.out.printf((msg) + "%n", args);
-    }
 }

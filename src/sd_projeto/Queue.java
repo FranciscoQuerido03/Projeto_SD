@@ -41,7 +41,7 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
     }
 
     /**
-     * Obtém o primeiro elemento da fila removendo-o.
+     * Obtém o primeiro elemento da fila removendo-o da fila e adicionando-o ao bloomFilter.
      * @return O primeiro elemento da fila, ou null se a fila estiver vazia.
      * @throws RemoteException se ocorrer um erro durante a comunicação remota.
      */
@@ -65,7 +65,7 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
     }
 
     /**
-     * Adiciona um elemento no início da fila.
+     * Adiciona um elemento no início da fila se o elemento não existir no bloomFilter.
      * @param url O URL a ser adicionado.
      * @throws RemoteException se ocorrer um erro durante a comunicação remota.
      */
@@ -78,7 +78,7 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
     }
 
     /**
-     * Adiciona um elemento no fim da fila.
+     * Adiciona um elemento no fim da fila se o elemento não existir no bloomFilter.
      * @param url O URL a ser adicionado.
      * @throws RemoteException se ocorrer um erro durante a comunicação remota.
      */
@@ -90,7 +90,7 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
     }
 
     /**
-     * Método principal para inicializar a fila remotamente.
+     * Método principal para inicializar a fila remotamente e o bloomFilter.
      */
     public static void main(String[] args) {
         try {
