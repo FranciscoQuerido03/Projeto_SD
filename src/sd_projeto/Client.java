@@ -63,6 +63,11 @@ public class Client extends UnicastRemoteObject implements Client_I {
 			
 	}
 
+	/**
+	 * ?????????????????????????????????????????
+	 * @param m ??????????????????????????????????????????
+	 * @throws RemoteException se ocorrer um erro durante a execução remota.
+	 */
 	public void print_adm_console_on_client(Message m) throws java.rmi.RemoteException {
 		System.out.println(m.toString());
 	}
@@ -152,6 +157,12 @@ public class Client extends UnicastRemoteObject implements Client_I {
 
 	}
 
+	/**
+	 * Pesquisa os links que apontam para o URL fornecido.
+	 * @param c O cliente atual.
+	 * @param conection Conexão com o servidor.
+	 * @param conteudo A mensagem que contém o URL.
+	 */
 	private static void searchPointers(Client c, Request conection, Message conteudo) {
 		Scanner scanner = new Scanner(System.in);
 		try {
@@ -178,6 +189,9 @@ public class Client extends UnicastRemoteObject implements Client_I {
 		return true;
 	}
 
+	/**
+	 * ?????????????????????????????????????????
+	 */
 	private static void adm_painel_handler() {
 		System.out.println("Press [1] to exit");
 		Scanner sc = new Scanner(System.in);
@@ -228,7 +242,11 @@ public class Client extends UnicastRemoteObject implements Client_I {
 		}
 	}
 
-	// Função para remover as stopwords de um texto
+	/**
+	 * Remove as stop words de um texto.
+	 * @param text O texto a ser filtrado.
+	 * @return O texto sem as stop words.
+	 */
 	private static String removeStopWords(String text) {
 		String[] words = text.split("\\s+");
 		List<String> filteredWords = new ArrayList<>();

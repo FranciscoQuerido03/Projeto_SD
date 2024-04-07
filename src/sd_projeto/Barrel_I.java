@@ -14,5 +14,11 @@ public interface Barrel_I extends Remote {
 	 */
 	public void request(String s) throws java.rmi.RemoteException;
 
+	/**
+	 * Método que solicita ao barrel a obtenção de links que apontam para um determinado URL.
+	 *
+	 * @param clientRequest URL para o qual se deseja encontrar links os a apontar.
+	 * @throws java.rmi.RemoteException se ocorrer um erro durante a execução remota.
+	 */
     public void links_pointing_to(String clientRequest) throws RemoteException;
 }

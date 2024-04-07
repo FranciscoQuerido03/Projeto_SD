@@ -73,16 +73,32 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		}
 	}
 
+	/**
+	 * Método para conectar um cliente.
+	 * @param c O cliente a ser conectado.
+	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
+	 */
 	public void client_connect(Client_I c) throws RemoteException {
 		clientes.add(new Client_info(c, false));
 	}
 
+	/**
+	 * Método para desconectar um cliente.
+	 * @param c O cliente a ser desconectado.
+	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
+	 */
 	public void client_disconnect(Client_I c) throws RemoteException {
 		Client_info ci = get_client(c);
 		if(ci != null)
 			clientes.remove(ci);
 	}
 
+	/**
+	 * Método para solicitar o painel de administração.
+	 * @param c O cliente.
+	 * @param b O bool que indica se o cliente deseja ver o painel de administração.
+	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
+	 */
 	public void request_adm_painel(Client_I c, Boolean b) throws RemoteException {
 		Client_info ci = get_client(c);
 		ci.set_see_console();
@@ -90,6 +106,11 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			c.print_adm_console_on_client(construct_adm_painel());
 	}
 
+	/**
+	 * Método para obter informações sobre um cliente.
+	 * @param c O cliente.
+	 * @return As informações do cliente.
+	 */
 	public Client_info get_client (Client_I c) {
 		for(Client_info ci : clientes){
 			if(ci.c.equals(c)){
@@ -100,7 +121,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	}
 
 	/**
-	 * ??????????????????????????????????????????
+	 * Método para enviar mensagens de erro ao cliente.
 	 * @param s A mensagem de erro.
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
@@ -187,11 +208,10 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	}
 
 	/**
-	 * Método para enviar respostas ao cliente.
+	 * Método processar as respostas dos barrels.
 	 * @param m A lista de URLs.
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
-
 	public void answer(ArrayList<URL_Content> m) throws RemoteException {
 		if (!m.isEmpty()) {
 			// Organizar a lista por prioridade
@@ -210,10 +230,11 @@ public class GateWay extends UnicastRemoteObject implements Request {
 
 
 	/**
-	 * @param c
-	 * @param m
-	 * @param indx
-	 * @throws RemoteException
+	 * Método para processar as solicitações de pesquisa dos clientes.
+	 * @param c O cliente.
+	 * @param m A mensagem com a solicitação.
+	 * @param indx O índice da página.
+	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
 	@Override
 	public void request10(Client_I c, Message m, int indx) throws RemoteException {
@@ -242,6 +263,12 @@ public class GateWay extends UnicastRemoteObject implements Request {
         }
     }
 
+	/**
+	 * Método para enviar os resultados da pesquisa agrupados 10 a 10 ao cliente.
+	 * @param c    O cliente que receberá os resultados.
+	 * @param indx A posição inicial na lista de URLs.
+	 * @throws java.rmi.RemoteException
+	 */
 	@Override
 	public void print_on_client_10(Client_I c ,int indx) throws java.rmi.RemoteException {
 
@@ -279,8 +306,9 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	}
 
 	/**
-	 * @param conteudo
-	 * @throws RemoteException
+	 * Método para processar as solicitações de links a apontar para um URL dos clientes.
+	 * @param conteudo O URL.
+	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
 
 	@Override
@@ -291,13 +319,18 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	}
 
 	/**
-	 * @param urlsPointingTo
+	 * Método para processar as respostas dos barrels relativas aos links a apontar para um URL.
+	 * @param urlsPointingTo A lista de links.
 	 */
 	@Override
 	public void answer_pointers(ArrayList<URL_Content> urlsPointingTo) throws RemoteException {
 		client.print_on_client(urlsPointingTo);
 	}
 
+	/**
+	 * Método para enviar solicitações de links a apontar para um URL aos barrels.
+	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
+	 */
 	private void send_request_barrels_pointers() throws RemoteException {
 		lock.lock();
 		try {
@@ -333,6 +366,10 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		}
 	}
 
+	/**
+	 * Método para construir o painel de administração do sistema.
+	 * @return Uma mensagem com informações sobre o sistema.
+	 */
 	public Message construct_adm_painel() {
 		Message m = new Message("");
 		m.addText("============< ADM CONSOLE >============\n");
@@ -346,7 +383,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	}
 
 	/**
-	 * Método principal para iniciar o Gateway.
+	 * Método main que inicia o Gateway.
 	 */
 	public static void main(String args[]) {
 		try {

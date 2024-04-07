@@ -22,19 +22,30 @@ public class URL_Content implements Serializable {
         this.url = url;
     }
 
+
+    /**
+     * Método que adiciona uma citação ao conteúdo do URL.
+     * @param s A citação a ser adicionada.
+     */
     public void add_citacao(String s) {
         this.citacao = s;
     }
+
 
     public void addUrl(URL_Content u) {
         this.title = u.title;
         this.url = u.url;
     }
 
+
     public boolean hasValues() {
         return this.url != null;
     }
 
+    /**
+     * Retorna uma representação do conteúdo do URL como uma string.
+     * @return Uma string que representa o conteúdo do URL.
+     */
     @Override
     public String toString() {
         return "Title: " + title + "\n" +
