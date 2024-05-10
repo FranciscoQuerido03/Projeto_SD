@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <title>Googol</title>
+  </head>
+  <style media="screen">
+
+    html {
+      block-size: 100%;
+    }
+
+    body {
+      min-block-size: 100%;
+      font-family: system-ui, sans-serif;
+
+      display: grid;
+      place-content: center;
+    }
+
+    .title {
+      text-align: center;
+      margin-bottom: 5vmin;
+      font-size: 5vmin;
+      font-weight: bold;
+      border: 5px solid black;
+      background: white;
+    }
+
+    .shadow-set {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2.5vmin;
+
+    & > li {
+      display: inline-flex;
+      background: black;
+
+      &:is(:hover, :focus-within) > button:not(:active) {
+        --distance: -10px;
+      }
+    }
+
+    & button {
+      appearance: none;
+      outline: none;
+      font-size: 5vmin;
+      border: 3px solid black;
+      background: white;
+
+      --distance: 0;
+      transform: translateX(var(--distance)) translateY(var(--distance));
+
+      @media (prefers-reduced-motion: no-preference) {
+        will-change: transform;
+        transition: transform .2s ease ;
+      }
+    }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+  </style>
+
+  <body>
+    <h1 class="title">Bem-vindo ao Googol!</h1>
+    <ul class="shadow-set">
+      <li><button th:onclick="'window.location.href=\'/index\' '">Indexar</button></li>
+      <li><button th:onclick="'window.location.href=\'/search\' '">Pesquisar</button></li>
+      <li><button th:onclick="'window.location.href=\'/info\' '">Informações</button></li>
+      <li><button th:onclick="'window.location.href=\'/pages\' '">Ligação de Paginas</button></li>
+      <li><button th:onclick="'window.location.href=\'/hackernews\' '">Pesquisar em Hacker News</button></li>
+    </ul>
+
+    <script>
+      function redirecionar(caminho) {
+          window.location.href = caminho;
+      }
+    </script>
+
+  </body>
+</html>
+
+

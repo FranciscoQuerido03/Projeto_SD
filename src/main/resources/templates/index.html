@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>Index</title>
+    </head>
+    <style>
+html {
+    block-size: 100%;
+}
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: system-ui, sans-serif;
+
+    height: 100%;
+    width: 100%;
+    margin: 0;
+}
+
+.titulo {
+  text-align: left;
+  margin-bottom: 2vh;
+  font-size: 2rem;
+  font-weight: bold;
+  width: 80%;
+}
+
+
+.input{
+    width: 80%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2vh;
+    margin-top: 15vh;
+}
+
+.input input{
+    border-radius: 5px;
+    border: 2px solid black;
+    width: 75%;
+    height: 5vh;
+}
+.buttons {
+  & > button:hover,
+  & > button:focus-within {
+    --distance: -10px;
+  }
+
+  & > button:not(:active) {
+    appearance: none;
+    outline: none;
+    font-size: 2rem;
+    border: 3px solid black;
+    background: white;
+    margin-right: 2vh;
+    transform: translateX(var(--distance)) translateY(var(--distance));
+
+    @media (prefers-reduced-motion: no-preference) {
+      will-change: transform;
+      transition: transform .2s ease ;
+    }
+  }
+}
+
+.buttons button {
+    font-size: 2rem;
+    border: 3px solid black;
+    background: white;
+    margin-right: 2vh;
+}
+
+    </style>
+
+    <body>
+        <h1 class="titulo">Indexar Url</h1>
+        <div class="input">
+            <input type="url" placeholder="URL A INDEXAR" >
+            <div class="buttons">
+                <button th:onclick="'window.location.href=\'/index\' '">Indexar</button>
+                <button th:onclick="'window.location.href=\'/\' '">Voltar</button>
+            </div>
+        </div>
+    </body>
+</html>
