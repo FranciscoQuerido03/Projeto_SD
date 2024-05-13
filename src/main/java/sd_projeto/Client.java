@@ -5,8 +5,6 @@ import java.util.*;
 import java.net.MalformedURLException;
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Arrays;
-import java.util.Scanner;
 
 /**
  * Implementação de um cliente para interagir com o motor de busca.
@@ -42,6 +40,11 @@ public class Client extends UnicastRemoteObject implements Client_I {
 	 * Inicializa o cliente e carrega as informações de registo.
 	 * @throws RemoteException se ocorrer um erro durante a criação do objeto remoto.
 	 */
+	public Client() throws RemoteException {
+		super();
+		NAMING = "rmi://localhost:1098/request";
+	}
+
 	public Client(File_Infos f) throws RemoteException {
 		super();
 		NAMING = f.lookup[0];
