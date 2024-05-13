@@ -142,8 +142,9 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 * @param m A mensagem com a solicitação.
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
-	public String send_request_barrels(Client_I c, Message m) throws RemoteException {
+	public ArrayList<URL_Content> send_request_barrels(Client_I c, Message m) throws RemoteException {
 		lock.lock();
+		ArrayList<URL_Content> resposta = new ArrayList<>();
 		try {
 			System.out.println("GateWay: " + m.toString() + " " + count);
 			client = c;
@@ -154,19 +155,21 @@ public class GateWay extends UnicastRemoteObject implements Request {
 					lb = 0;
 				System.out.println("lb " + lb);
 				long inicio_pedido = System.currentTimeMillis();
-				barrels[lb].barrel.request(client_request.toLowerCase());
+				resposta = barrels[lb].barrel.request(client_request.toLowerCase());
 				long fim_pedido = System.currentTimeMillis();
 				barrels[lb].avg_time = (barrels[lb].avg_time + ((fim_pedido - inicio_pedido) / 1000)) / 2;
 				lb++;
 			} else {
 				client.print_err_2_client(new Message(Erro_Indisponibilidade));
-				return Erro_Indisponibilidade;
+				URL_Content u = new URL_Content("Falha Ocurrida", "");
+				u.citacao = Erro_Indisponibilidade;
+				resposta.add(u);
 			}
 			adm_painel();
 		} finally {
 			lock.unlock();
 		}
-		return null;
+		return resposta;
 	}
 
 
@@ -266,14 +269,12 @@ public class GateWay extends UnicastRemoteObject implements Request {
             content = print_on_client_10(c,indx);
         } else {
             // Se não houver resultados para o cliente, envia uma solicitação aos barrels
-            String check = send_request_barrels(c, m);
-			if(check == null)
-            	content = print_on_client_10(c, indx);
-			else{
-				System.out.println("FUncionaou");
-				content = new ArrayList<>();
-				content.add(new URL_Content("Falha Ocurrida", check));
-			}
+            content = send_request_barrels(c, m);
+			if(content.get(0).url.equals(""))
+				return content;
+
+			content = print_on_client_10(c, indx);
+            //content = print_on_client_10(c, indx);
         }
 
 		return content;

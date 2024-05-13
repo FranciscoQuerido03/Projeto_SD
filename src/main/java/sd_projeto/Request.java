@@ -15,7 +15,7 @@ public interface Request extends Remote {
      * @param m A mensagem com a solicitação.
      * @throws RemoteException se ocorrer um erro durante a comunicação remota.
      */
-    public String send_request_barrels(Client_I c, Message m) throws RemoteException;
+    public ArrayList<URL_Content> send_request_barrels(Client_I c, Message m) throws RemoteException;
 
     /**
      * Método que solicita a adição de um URL à fila de processamento.

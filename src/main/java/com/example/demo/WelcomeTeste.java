@@ -61,24 +61,33 @@ public class WelcomeTeste{
 
 
     @GetMapping("/search_result")
-    public String search_result(@ModelAttribute Query pesquisa, Model model) {
+    public String search_result(@ModelAttribute Query pesquisa, @RequestParam(defaultValue = "0") int pageNumber, Model model) {
 
         try{
             //Message querry = new Message(message.getContent());
-            ArrayList<URL_Content> content = Gateway.request10((Client_I) c, new Message(pesquisa.getContent()), 0);
+            System.out.println(pageNumber);
+            ArrayList<URL_Content> content = Gateway.request10((Client_I) c, new Message(pesquisa.getContent()), pageNumber);
+
+            for(URL_Content u: content)
+                System.out.println("===>" + u.citacao);
 
             if(content.get(0).title.equals("Falha Ocurrida")){
-                content = new ArrayList<>();
-                //content.get(0).title = "Universidade de Coimbra";
-                //content.get(0).url = "www.uc.pt";
-                //content.get(0).citacao = "Universidade de Coimbra";
+                content.get(0).url = null;
             }
 
+            boolean Next = true;
+            boolean Previous = true;
+
+            if(content.size() < 10)
+                Next = false;
+            
+            if(pageNumber == 0)
+                Previous = false;
+
             model.addAttribute("content", content);
-
-
-            for(URL_Content u : content)
-                System.out.println(u.title + " " + u.url);
+            model.addAttribute("pageNumber", pageNumber);
+            model.addAttribute("next", Next);
+            model.addAttribute("previous", Previous);
 
         } catch (RemoteException e){
             System.out.println("=======================================");
