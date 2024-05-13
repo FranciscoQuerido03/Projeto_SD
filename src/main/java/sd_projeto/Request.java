@@ -15,7 +15,7 @@ public interface Request extends Remote {
      * @param m A mensagem com a solicitação.
      * @throws RemoteException se ocorrer um erro durante a comunicação remota.
      */
-    public void send_request_barrels(Client_I c, Message m) throws RemoteException;
+    public String send_request_barrels(Client_I c, Message m) throws RemoteException;
 
     /**
      * Método que solicita a adição de um URL à fila de processamento.
@@ -87,7 +87,7 @@ public interface Request extends Remote {
      * @param indx  Index para calcular o conjunto de 10 URLs a enviar.
      * @throws RemoteException se ocorrer um erro durante a comunicação remota.
      */
-    public void request10(Client_I c, Message m, int indx) throws RemoteException;
+    public ArrayList<URL_Content> request10(Client_I c, Message m, int indx) throws RemoteException;
 
     /**
      * Envia 10 resultados ao cliente para serem exibidos.
@@ -96,7 +96,7 @@ public interface Request extends Remote {
      * @param indx A posição inicial na lista de URLs.
      * @throws RemoteException se ocorrer um erro durante a comunicação remota.
      */
-    public void print_on_client_10(Client_I c, int indx) throws RemoteException;
+    public ArrayList<URL_Content> print_on_client_10(Client_I c, int indx) throws RemoteException;
 
     /**
      * Solicita a obtenção dos links que apontam para um determinado URL.

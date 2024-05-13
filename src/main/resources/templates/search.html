@@ -77,12 +77,16 @@
 <body>
   <h1 class="titulo">Pesquisar</h1>
   <div class="input">
-      <input type="search" placeholder="Pesquisar...">
-      <div class="buttons">
-          <button th:onclick="'window.location.href=\'/search_result\' '">Pesquisar</button>
-          <button th:onclick="'window.location.href=\'/\' '">Voltar</button>
-      </div>
+    <form th:action="@{/search_result}" th:object="${query}" method="get">
+          <input type="search" placeholder="Pesquisar..." name="query" th:field="*{content}">
+          <div class="buttons">
+              <button type="submit">Pesquisar</button>
+              <button onclick="window.location.href='/'">Voltar</button>
+          </div>
+      </form>
   </div>
 </body>
+
+
 
 </html>

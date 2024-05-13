@@ -5,13 +5,16 @@ import com.example.demo.forms.Project;
 import sd_projeto.Client;
 import sd_projeto.Client_I;
 import sd_projeto.Message;
+import sd_projeto.Query;
 import sd_projeto.Request;
+import sd_projeto.URL_Content;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-
+import java.util.ArrayList;
+import java.util.Map;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -48,20 +51,43 @@ public class WelcomeTeste{
 
     @GetMapping("/search")
     public String search(Model model) {
+        // Create a Message object and add it to the model with the correct attribute name
+
+        Query m = new Query();
+        model.addAttribute("query", m);
+
+        return "search";
+    }
+
+
+    @GetMapping("/search_result")
+    public String search_result(@ModelAttribute Query pesquisa, Model model) {
+
         try{
-            Gateway.request10((Client_I) c, new Message("Ola"), 0);
+            //Message querry = new Message(message.getContent());
+            ArrayList<URL_Content> content = Gateway.request10((Client_I) c, new Message(pesquisa.getContent()), 0);
+
+            if(content.get(0).title.equals("Falha Ocurrida")){
+                content = new ArrayList<>();
+                //content.get(0).title = "Universidade de Coimbra";
+                //content.get(0).url = "www.uc.pt";
+                //content.get(0).citacao = "Universidade de Coimbra";
+            }
+
+            model.addAttribute("content", content);
+
+
+            for(URL_Content u : content)
+                System.out.println(u.title + " " + u.url);
+
         } catch (RemoteException e){
             System.out.println("=======================================");
             e.printStackTrace();
         }
-        return "search";
-    }
 
-    @GetMapping("/search_result")
-    public String search_result(Model model) {
-        
         return "search_results";
     }
+
 
     @GetMapping("/info")
     public String info(Model model) {

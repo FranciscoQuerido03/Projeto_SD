@@ -4,15 +4,19 @@
     <meta charset="UTF-8">
     <title>Search Results</title>
 </head>
-
 <body>
-<div class="input">
-    <div class="buttons">
-        <button th:onclick="'window.location.href=\'/search\' '">Voltar</button>
+    <h1>Search Results</h1>
+    <div th:if="${not #lists.isEmpty(content)}">
+        <ul>
+            <li th:each="result : ${content}">
+                <a th:href="${result.url}" th:text="${result.title}"></a>
+                <p th:text="${result.citacao}"></p>
+            </li>
+        </ul>
     </div>
-    <div>
-        <input type="search" placeholder="Por completar..." >
+    <div th:if="${#lists.isEmpty(content)}">
+        <h3>Error</h3>
+        <p>Service unavailable due to internal problems...</p>
     </div>
-</div>
 </body>
 </html>

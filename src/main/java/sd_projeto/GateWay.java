@@ -142,7 +142,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 * @param m A mensagem com a solicitação.
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
-	public void send_request_barrels(Client_I c, Message m) throws RemoteException {
+	public String send_request_barrels(Client_I c, Message m) throws RemoteException {
 		lock.lock();
 		try {
 			System.out.println("GateWay: " + m.toString() + " " + count);
@@ -160,11 +160,13 @@ public class GateWay extends UnicastRemoteObject implements Request {
 				lb++;
 			} else {
 				client.print_err_2_client(new Message(Erro_Indisponibilidade));
+				return Erro_Indisponibilidade;
 			}
 			adm_painel();
 		} finally {
 			lock.unlock();
 		}
+		return null;
 	}
 
 
@@ -243,14 +245,13 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 * @param indx O índice da página.
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
-	@Override
-	public void request10(Client_I c, Message m, int indx) throws RemoteException {
+	public ArrayList<URL_Content> request10(Client_I c, Message m, int indx) throws RemoteException {
         //Cliente desconecta-se
         if (indx < 0) {
             synchronized (results10) {
                 results10.remove(c);
             }
-            return;
+            return null;
         }
 
         // Verifica se há resultados para o cliente
@@ -260,14 +261,22 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		}
 
 		client = c;
-
+		ArrayList<URL_Content> content;
 		if (flag) {
-            print_on_client_10(c,indx);
+            content = print_on_client_10(c,indx);
         } else {
             // Se não houver resultados para o cliente, envia uma solicitação aos barrels
-            send_request_barrels(c, m);
-            print_on_client_10(c, indx);
+            String check = send_request_barrels(c, m);
+			if(check == null)
+            	content = print_on_client_10(c, indx);
+			else{
+				System.out.println("FUncionaou");
+				content = new ArrayList<>();
+				content.add(new URL_Content("Falha Ocurrida", check));
+			}
         }
+
+		return content;
     }
 
 	/**
@@ -276,8 +285,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 * @param indx A posição inicial na lista de URLs.
 	 * @throws java.rmi.RemoteException
 	 */
-	@Override
-	public void print_on_client_10(Client_I c ,int indx) throws java.rmi.RemoteException {
+	public ArrayList<URL_Content> print_on_client_10(Client_I c ,int indx) throws java.rmi.RemoteException {
 
 		ArrayList<URL_Content> contentToSend = new ArrayList<>();
 
@@ -287,7 +295,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		}
 
 		if (!flag) {
-			return;
+			return null;
 		}
 
 		ArrayList<URL_Content> results;
@@ -297,7 +305,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		}
 
 		if (results.isEmpty()) {
-			return;
+			return null;
 		}
 
 		int startIndex = indx * 10;
@@ -310,6 +318,8 @@ public class GateWay extends UnicastRemoteObject implements Request {
 
 		// Envie o ArrayList contentToSend para o cliente
 		c.print_on_client(contentToSend);
+
+		return contentToSend;
 	}
 
 	/**
