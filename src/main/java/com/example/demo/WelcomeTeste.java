@@ -1,5 +1,6 @@
 package com.example.demo;
 
+
 import com.example.demo.forms.Project;
 
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,10 +15,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.UUID;
-import java.util.HashMap;
+import java.util.*;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -55,7 +53,16 @@ public class WelcomeTeste{
             System.out.println("Inicializado sem sucesso!!!");
             e.printStackTrace();
         }
+
         return "home_page";
+    }
+
+    @GetMapping("/menu")
+    public String menu(Model model) {
+        Query m = new Query();
+        model.addAttribute("query", m);
+
+        return "menu";
     }
 
     @GetMapping("/index")
@@ -68,12 +75,18 @@ public class WelcomeTeste{
 
     @GetMapping("/indexing")
     public String indexing(@ModelAttribute Query pesquisa, Model model) throws RemoteException {
+
+        //Safty check
+        if (Objects.equals(pesquisa.getClientId(), "") || Objects.equals(pesquisa.getContent(), "")){
+            return "redirect:/";
+        }
+
         try{
             String clientId = pesquisa.getClientId();
             Client c = clientesAtivos.get(clientId);
 
-            Message querry = new Message(pesquisa.getContent());
 
+            Message querry = new Message(pesquisa.getContent());
             String content = "Indexação realizada com sucesso!";
             model.addAttribute("content", content);
 
@@ -89,9 +102,10 @@ public class WelcomeTeste{
     }
 
     @GetMapping("/search")
-    public String search(Model model) {
+    public String search(@ModelAttribute Query pesquisa, Model model) throws RemoteException {
+        Client c = clientesAtivos.get(pesquisa.getClientId());
         // Create a Message object and add it to the model with the correct attribute name
-
+        Gateway.request10(c, new Message(""), -1);
         Query m = new Query();
         model.addAttribute("query", m);
 
@@ -101,12 +115,20 @@ public class WelcomeTeste{
     @GetMapping("/search_result")
     public String search_result(@ModelAttribute Query pesquisa, @RequestParam(defaultValue = "0") int pageNumber, Model model) {
 
+        //Safty check
+        if (Objects.equals(pesquisa.getClientId(), "") || Objects.equals(pesquisa.getContent(), "")){
+            return "redirect:/";
+        }
+
         try{
             String clientId = pesquisa.getClientId();
             Client c = clientesAtivos.get(clientId);
+            if (c == null){
+                return "redirect:/";
+            }
             //Message querry = new Message(message.getContent());
             System.out.println(pageNumber);
-            ArrayList<URL_Content> content = Gateway.request10((Client_I) c, new Message(pesquisa.getContent()), pageNumber);
+            ArrayList<URL_Content> content = Gateway.request10(c, new Message(pesquisa.getContent()), pageNumber);
 
             for(URL_Content u: content)
                 System.out.println("===>" + u.citacao);
@@ -156,6 +178,12 @@ public class WelcomeTeste{
 
     @GetMapping("/pages_result")
     public String pages_result(@ModelAttribute Query pesquisa, Model model) {
+
+        //Safty check
+        if (Objects.equals(pesquisa.getClientId(), "") || Objects.equals(pesquisa.getContent(), "")){
+            return "redirect:/";
+        }
+
         try{
             String clientId = pesquisa.getClientId();
             Client c = clientesAtivos.get(clientId);

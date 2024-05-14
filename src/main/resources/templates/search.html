@@ -6,6 +6,12 @@
     <script th:inline="javascript">
         /*<![CDATA[*/
         var clientId = localStorage.getItem('clientId');
+        document.addEventListener('DOMContentLoaded', function() {
+            var clientId = localStorage.getItem('clientId');
+            if (!clientId) {
+                window.location.href = "/";
+            }
+        });
         function setClientId() {
             document.getElementById('clientIdField').value = clientId;
         }
@@ -125,7 +131,7 @@
         <input type="hidden" id="clientIdField" th:field="*{clientId}">
         <div class="buttons">
             <button type="submit">Pesquisar</button>
-            <a th:onclick="'window.location.href=\'/\' '">Voltar</a>
+            <a th:onclick="|window.location.href='@{/menu}'|">Voltar</a>
         </div>
     </form>
 </div>

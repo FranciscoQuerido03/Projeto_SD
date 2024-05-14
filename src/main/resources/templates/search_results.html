@@ -21,6 +21,7 @@
     <div>
         <a th:if="${previous}" th:href="@{/search_result(pageNumber=${pageNumber} - 1)}">Previous</a>
         <a th:if="${next}" th:href="@{/search_result(pageNumber=${pageNumber} + 1)}">Next</a>
+        <button th:onclick="|window.location.href='@{/menu}'|">Voltar</button>
     </div>
 </body>
 </html>
