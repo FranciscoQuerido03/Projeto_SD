@@ -116,6 +116,8 @@ public class WelcomeTeste{
     public String search_result(@ModelAttribute Query pesquisa, @RequestParam(defaultValue = "0") int pageNumber, Model model) {
 
         //Safty check
+        System.out.println(pesquisa.getClientId());
+        System.out.println(pesquisa.getContent());
         if (Objects.equals(pesquisa.getClientId(), "") || Objects.equals(pesquisa.getContent(), "")){
             return "redirect:/";
         }
@@ -146,6 +148,7 @@ public class WelcomeTeste{
             if(pageNumber == 0)
                 Previous = false;
 
+            model.addAttribute("pesquisa", pesquisa);
             model.addAttribute("content", content);
             model.addAttribute("pageNumber", pageNumber);
             model.addAttribute("next", Next);
