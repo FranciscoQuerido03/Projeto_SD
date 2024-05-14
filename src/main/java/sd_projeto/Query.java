@@ -5,8 +5,8 @@ public class Query {
     private String clientId;
 
     public Query(){
-        this.content = new String();
-        this.clientId = new String();
+        this.content = "";
+        this.clientId = "";
     }
 
     public String getContent() {

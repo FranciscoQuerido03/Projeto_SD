@@ -8,78 +8,74 @@
       }
     </script>
   </head>
-  <style media="screen">
-
+  <style>
     html {
-      block-size: 100%;
+        block-size: 100%;
     }
-
     body {
-      min-block-size: 100%;
-      font-family: system-ui, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-family: system-ui, sans-serif;
 
-      display: grid;
-      place-content: center;
+        height: 100%;
+        width: 100%;
+        margin: 0;
     }
-
-    .title {
-      text-align: center;
-      margin-bottom: 5vmin;
-      font-size: 5vmin;
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 80%;
+    }
+    .titulo {
+      text-align: left;
+      margin-bottom: 2vh;
+      font-size: 2rem;
       font-weight: bold;
-      border: 5px solid black;
-      background: white;
+      width: 80%;
     }
 
-    .shadow-set {
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2.5vmin;
 
-    & > li {
-      display: inline-flex;
-      background: black;
-
-      &:is(:hover, :focus-within) > button:not(:active) {
+    .buttons {
+      & > button:hover,
+      & > button:focus-within {
         --distance: -10px;
       }
-    }
 
-    & button {
-      appearance: none;
-      outline: none;
-      font-size: 5vmin;
-      border: 3px solid black;
-      background: white;
+      & > button:not(:active) {
+        appearance: none;
+        outline: none;
+        font-size: 2rem;
+        border: 3px solid black;
+        background: white;
+        margin-right: 2vh;
+        transform: translateX(var(--distance)) translateY(var(--distance));
 
-      --distance: 0;
-      transform: translateX(var(--distance)) translateY(var(--distance));
-
-      @media (prefers-reduced-motion: no-preference) {
-        will-change: transform;
-        transition: transform .2s ease ;
+        @media (prefers-reduced-motion: no-preference) {
+          will-change: transform;
+          transition: transform .2s ease ;
+        }
       }
     }
-}
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-}
+    .buttons button {
+        font-size: 2rem;
+        border: 3px solid black;
+        background: white;
+        margin-right: 2vh;
+    }
 
-  </style>
+    </style>
 
   <body>
+  <div class="container">
     <h1 class="title">Bem-vindo ao Googol!</h1>
-    <ul class="shadow-set">
-      <li><button th:onclick="'window.location.href=\'/index\' '">Indexar</button></li>
-      <li><button th:onclick="'window.location.href=\'/search\' '">Pesquisar</button></li>
-      <li><button th:onclick="'window.location.href=\'/info\' '">Informações</button></li>
-      <li><button th:onclick="'window.location.href=\'/pages\' '">Ligação de Paginas</button></li>
-      <li><button th:onclick="'window.location.href=\'/hackernews\' '">Pesquisar em Hacker News</button></li>
-    </ul>
+    <div class="buttons">
+      <button th:onclick="|window.location.href='@{/menu}'|">Entrar</button>
+    </div>
+  </div>
     <script>
       storeClientId('[[${clienteId}]]');
     </script>

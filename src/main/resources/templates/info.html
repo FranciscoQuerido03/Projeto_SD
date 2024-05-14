@@ -3,9 +3,22 @@
     <head>
         <meta charset="UTF-8">
         <title>Title</title>
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            document.addEventListener('DOMContentLoaded', function() {
+                var clientId = localStorage.getItem('clientId');
+                if (!clientId) {
+                    window.location.href = "/";
+                }
+            });
+            function setClientId() {
+                document.getElementById('clientIdField').value = clientId;
+            }
+            /*]]>*/
+        </script>
     </head>
     <body>
         <h1>Info Page</h1>
-        <button th:onclick="'window.location.href=\'/\' '">Voltar</button>
+        <button th:onclick="|window.location.href='@{/menu}'|">Voltar</button>
     </body>
 </html>
