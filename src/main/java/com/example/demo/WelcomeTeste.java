@@ -99,26 +99,36 @@ public class WelcomeTeste{
     }
 
     @GetMapping("/search_result")
-    public String search_result(@ModelAttribute Query pesquisa, Model model) {
+    public String search_result(@ModelAttribute Query pesquisa, @RequestParam(defaultValue = "0") int pageNumber, Model model) {
+
         try{
-        String clientId = pesquisa.getClientId();
-        Client c = clientesAtivos.get(clientId);
+            String clientId = pesquisa.getClientId();
+            Client c = clientesAtivos.get(clientId);
+            //Message querry = new Message(message.getContent());
+            System.out.println(pageNumber);
+            ArrayList<URL_Content> content = Gateway.request10((Client_I) c, new Message(pesquisa.getContent()), pageNumber);
 
-        Message querry = new Message(pesquisa.getContent());
-        ArrayList<URL_Content> content = Gateway.request10((Client_I) c, querry, 0);
+            for(URL_Content u: content)
+                System.out.println("===>" + u.citacao);
 
-        if(content.get(0).title.equals("Falha Ocurrida")){
-            content = new ArrayList<>();
-//                content.get(0).title = "Universidade de Coimbra";
-//                content.get(0).url = "www.uc.pt";
-//                content.get(0).citacao = "Universidade de Coimbra";
-        }
+            if(content.get(0).title.equals("Falha Ocurrida")){
+                content.get(0).url = null;
+            }
 
-        model.addAttribute("content", content);
+            boolean Next = true;
+            boolean Previous = true;
 
+            if(content.size() < 10)
+                Next = false;
+            
+            if(pageNumber == 0)
+                Previous = false;
 
-        for(URL_Content u : content)
-            System.out.println(u.title + " " + u.url);
+            model.addAttribute("content", content);
+            model.addAttribute("pageNumber", pageNumber);
+            model.addAttribute("next", Next);
+            model.addAttribute("previous", Previous);
+
 
         } catch (RemoteException e){
             System.out.println("=======================================");

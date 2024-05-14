@@ -41,7 +41,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	 * Função responsável por tratar dos pedidos do cliente
 	 * @param m	Pedido do cliente
      */
-	public void request(String m) throws java.rmi.RemoteException {
+	public ArrayList<URL_Content> request(String m) throws java.rmi.RemoteException {
 		String[] words = m.split(" ");
 		ArrayList<URL_Content> resultado = new ArrayList<>();
 		System.out.println("Request received: " + m);
@@ -86,9 +86,15 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 		 */
 		if (!resultado.isEmpty()) {
 			Conection.answer(resultado);
+			return resultado;
 		} else {
 			Conection.err_no_matches(new Message("No URLs found for the input: " + m));
-			Conection.answer(resultado);
+			//Conection.answer(resultado);
+			//resultado = new ArrayList<>();
+			URL_Content u = new URL_Content("Falha Ocurrida", "");
+			u.citacao = "No URLs found for the input: " + m;
+			resultado.add(u);
+			return resultado;
 		}
 	}
 
