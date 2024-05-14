@@ -2,6 +2,11 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
   <head>
     <title>Googol</title>
+    <script>
+      function storeClientId(clientId) {
+          localStorage.setItem('clientId', clientId);
+      }
+    </script>
   </head>
   <style media="screen">
 
@@ -75,13 +80,9 @@
       <li><button th:onclick="'window.location.href=\'/pages\' '">Ligação de Paginas</button></li>
       <li><button th:onclick="'window.location.href=\'/hackernews\' '">Pesquisar em Hacker News</button></li>
     </ul>
-
     <script>
-      function redirecionar(caminho) {
-          window.location.href = caminho;
-      }
+      storeClientId('[[${clienteId}]]');
     </script>
-
   </body>
 </html>
 

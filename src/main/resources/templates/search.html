@@ -3,6 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Search</title>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var clientId = localStorage.getItem('clientId');
+        function setClientId() {
+            document.getElementById('clientIdField').value = clientId;
+        }
+        /*]]>*/
+    </script>
 </head>
 <style>
     html {
@@ -40,9 +48,20 @@
     .input input{
         border-radius: 5px;
         border: 2px solid black;
-        width: 75%;
+        width: 100%;
         height: 5vh;
     }
+
+     .input form{
+        width: 75%;
+    }
+
+    .input .buttons{
+        display: flex;
+        justify-content: center;
+        margin-top: 2vh;
+    }
+
     .buttons {
       & > button:hover,
       & > button:focus-within {
@@ -50,6 +69,25 @@
       }
 
       & > button:not(:active) {
+        appearance: none;
+        outline: none;
+        font-size: 2rem;
+        border: 3px solid black;
+        background: white;
+        margin-right: 2vh;
+        transform: translateX(var(--distance)) translateY(var(--distance));
+
+        @media (prefers-reduced-motion: no-preference) {
+          will-change: transform;
+          transition: transform .2s ease ;
+        }
+      }
+      & > a:hover,
+      & > a:focus-within {
+        --distance: -10px;
+      }
+
+      & > a:not(:active) {
         appearance: none;
         outline: none;
         font-size: 2rem;
@@ -71,22 +109,26 @@
         background: white;
         margin-right: 2vh;
     }
+     .buttons a {
+        font-size: 2rem;
+        border: 3px solid black;
+        background: white;
+        margin-right: 2vh;
+    }
 
 </style>
-
 <body>
-  <h1 class="titulo">Pesquisar</h1>
-  <div class="input">
-    <form th:action="@{/search_result}" th:object="${query}" method="get">
-          <input type="search" placeholder="Pesquisar..." name="query" th:field="*{content}">
-          <div class="buttons">
-              <button type="submit">Pesquisar</button>
-              <button onclick="window.location.href='/'">Voltar</button>
-          </div>
-      </form>
-  </div>
+<h1 class="titulo">Pesquisar</h1>
+<div class="input">
+    <form th:action="@{/search_result}" th:object="${query}" method="get" onsubmit="setClientId()">
+        <input type="search" placeholder="Pesquisar..." th:field="*{content}">
+        <input type="hidden" id="clientIdField" th:field="*{clientId}">
+        <div class="buttons">
+            <button type="submit">Pesquisar</button>
+            <a th:onclick="'window.location.href=\'/\' '">Voltar</a>
+        </div>
+    </form>
+</div>
 </body>
-
-
-
 </html>
+
