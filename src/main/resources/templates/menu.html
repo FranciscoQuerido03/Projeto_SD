@@ -4,8 +4,8 @@
     <title>Googol</title>
     <script th:inline="javascript">
       /*<![CDATA[*/
+      var clientId = localStorage.getItem('clientId');
       document.addEventListener('DOMContentLoaded', function() {
-          var clientId = localStorage.getItem('clientId');
           if (!clientId) {
               window.location.href = "/";
           }
@@ -39,6 +39,22 @@
       background: white;
     }
 
+    .pesquisa_button {
+      appearance: none;
+      outline: none;
+      font-size: 5vmin;
+      border: 3px solid black;
+      background: white;
+
+      --distance: 0;
+      transform: translateX(var(--distance)) translateY(var(--distance));
+
+      @media (prefers-reduced-motion: no-preference) {
+        will-change: transform;
+        transition: transform .2s ease ;
+      }
+    }
+
     .shadow-set {
     margin: 0;
     display: flex;
@@ -54,6 +70,8 @@
         --distance: -10px;
       }
     }
+
+
 
     & button {
       appearance: none;
@@ -83,7 +101,10 @@
     <h1 class="title">Escolha a opção</h1>
     <ul class="shadow-set">
       <li><button th:onclick="'window.location.href=\'/index\' '">Indexar</button></li>
-      <li><button th:onclick="'window.location.href=\'/search\' '">Pesquisar</button></li>
+      <form th:action="@{/search}" th:object="${query}" method="get" onsubmit="setClientId()">
+        <input type="hidden" id="clientIdField" th:field="*{clientId}">
+        <button class="pesquisa_button" type="submit">Pesquisar</button>
+      </form>
       <li><button th:onclick="'window.location.href=\'/info\' '">Informações</button></li>
       <li><button th:onclick="'window.location.href=\'/pages\' '">Ligação de Paginas</button></li>
       <li><button th:onclick="'window.location.href=\'/hackernews\' '">Pesquisar em Hacker News</button></li>

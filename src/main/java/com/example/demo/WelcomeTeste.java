@@ -59,6 +59,8 @@ public class WelcomeTeste{
 
     @GetMapping("/menu")
     public String menu(Model model) {
+        Query m = new Query();
+        model.addAttribute("query", m);
 
         return "menu";
     }
@@ -100,9 +102,10 @@ public class WelcomeTeste{
     }
 
     @GetMapping("/search")
-    public String search(Model model) {
+    public String search(@ModelAttribute Query pesquisa, Model model) throws RemoteException {
+        Client c = clientesAtivos.get(pesquisa.getClientId());
         // Create a Message object and add it to the model with the correct attribute name
-
+        Gateway.request10(c, new Message(""), -1);
         Query m = new Query();
         model.addAttribute("query", m);
 
