@@ -204,7 +204,7 @@ public class WelcomeTeste{
             Client c = clientesAtivos.get(clientId);
 
             Message querry = new Message(pesquisa.getContent());
-            ArrayList<URL_Content> content = Gateway.request10((Client_I) c, querry, 0);
+            ArrayList<URL_Content> content = Gateway.request10(c, querry, 0);
 
             if(content.get(0).title.equals("Falha Ocurrida")){
                 content = new ArrayList<>();
