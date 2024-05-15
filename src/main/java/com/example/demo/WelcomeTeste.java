@@ -2,15 +2,18 @@ package com.example.demo;
 
 
 import com.example.demo.forms.Project;
+import com.example.demo.sd_projeto.Client;
+import com.example.demo.sd_projeto.Client_I;
+import com.example.demo.sd_projeto.Message;
+import com.example.demo.sd_projeto.Query;
+import com.example.demo.sd_projeto.Request;
+import com.example.demo.sd_projeto.URL_Content;
+import com.example.demo.sd_projeto.WebServer_I;
 
 import org.springframework.web.bind.annotation.RequestParam;
-import sd_projeto.Client;
-import sd_projeto.Client_I;
-import sd_projeto.Message;
-import sd_projeto.Query;
-import sd_projeto.Request;
-import sd_projeto.URL_Content;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.rmi.AccessException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -18,12 +21,12 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-
-import javax.servlet.http.HttpServletRequest;
 
 
 @Controller
@@ -37,41 +40,34 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
 
     public WelcomeTeste() throws RemoteException{
         super();
+
+        LocateRegistry.createRegistry(2500).rebind("WebServer", this);        
+
         try{
-            startRMIRegistry();
             registry = LocateRegistry.getRegistry("localhost", 1098);
             Gateway = (Request) registry.lookup("request");
 
             Gateway.ws_conn();
+
         } catch (RemoteException | NotBoundException e) {
             System.out.println("Inicializado sem sucesso!!!");
             e.printStackTrace();
+
         }
 
-    }
-
-    private void startRMIRegistry() {
-        try {
-            Registry existingRegistry = LocateRegistry.getRegistry(2500);
-            
-            if (existingRegistry == null) {
-                Registry registry = LocateRegistry.createRegistry(2500);
-                registry.rebind("/WebServer", this);
-                System.out.println("RMI registry created and object bound");
-            } else {
-                existingRegistry.rebind("/WebServer", this);
-            }
-        } catch (RemoteException e) {
-            System.err.println("Error starting or accessing RMI registry:");
-            e.printStackTrace();
-        }
     }
     
+    @Autowired
+    private Updates messagingController;
 
     @Override
-    public void update() throws RemoteException {
-        System.out.println("Update received");
+    public void update(Message m) throws RemoteException {
+        
+        // Call the WebSocket controller method to send the message
+        messagingController.onMessage(m);
     }
+
+
 
     @GetMapping("/")
     public String welcome(Model model) {
