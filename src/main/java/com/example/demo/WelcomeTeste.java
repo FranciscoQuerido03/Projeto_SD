@@ -3,7 +3,7 @@ package com.example.demo;
 
 import com.example.demo.forms.Project;
 
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PostMapping;
 import sd_projeto.Client;
 import sd_projeto.Client_I;
 import sd_projeto.Message;
@@ -11,16 +11,22 @@ import sd_projeto.Query;
 import sd_projeto.Request;
 import sd_projeto.URL_Content;
 
+import java.io.IOException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -32,6 +38,8 @@ public class WelcomeTeste{
     public static Request Gateway;
     public static Map<String, Client> clientesAtivos = new HashMap<>(); // Mapa para armazenar os clientes ativos
 
+    @Autowired
+    private HackerNewsService hackerNewsService;
 
     @GetMapping("/")
     public String welcome(Model model) {
@@ -76,30 +84,34 @@ public class WelcomeTeste{
     @GetMapping("/indexing")
     public String indexing(@ModelAttribute Query pesquisa, Model model) throws RemoteException {
 
-        //Safty check
-        if (Objects.equals(pesquisa.getClientId(), "") || Objects.equals(pesquisa.getContent(), "")){
+        // Safty check
+        if (Objects.equals(pesquisa.getClientId(), "") || pesquisa.getUrls().isEmpty()){
             return "redirect:/";
         }
 
-        try{
+        try {
             String clientId = pesquisa.getClientId();
             Client c = clientesAtivos.get(clientId);
+            System.out.println("Conteudo "+pesquisa.getContent());
 
 
-            Message querry = new Message(pesquisa.getContent());
-            String content = "Indexação realizada com sucesso!";
-            model.addAttribute("content", content);
-
-            Gateway.send_request_queue(c, querry);
-
-            }catch (RemoteException e){
-                System.out.println("=======================================");
-                e.printStackTrace();
+            // Itera sobre os URLs e envia cada um para indexação
+            for (String url : pesquisa.getUrls()) {
+                System.out.println("URL a indexar: " + url);
+                Message querry = new Message(url);
+                Gateway.send_request_queue(c, querry);
             }
 
+            String content = "Indexação realizada com sucesso!";
+            model.addAttribute("content", content);
+        } catch (RemoteException e) {
+            System.out.println("=======================================");
+            e.printStackTrace();
+        }
 
         return "indexed";
     }
+
 
     @GetMapping("/search")
     public String search(@ModelAttribute Query pesquisa, Model model) throws RemoteException {
@@ -219,6 +231,28 @@ public class WelcomeTeste{
     @GetMapping("/hackernews")
     public String hackernews(Model model) {
         return "hackernews";
+    }
+
+    @GetMapping("/hackernews_search")
+    public String hackernewsSearch(@ModelAttribute Query pesquisa, Model model) {
+        List<String> keywords = Arrays.asList(pesquisa.getContent().split(" "));
+        try {
+            List<HackerNewsItemRecord> stories = hackerNewsService.fetchTopStoriesWithKeywords(keywords);
+            List<String> urls = stories.stream()
+                    .map(HackerNewsItemRecord::url)
+                    .collect(Collectors.toList());
+
+            Query m = new Query();
+            model.addAttribute("query", m);
+
+            model.addAttribute("content", stories);
+
+            System.out.println("URLS: " + urls);
+        } catch (IOException | InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            model.addAttribute("error", "Ocorreu um erro ao buscar as histórias do Hacker News.");
+        }
+        return "hackernews_results";
     }
 
 }
