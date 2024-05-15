@@ -12,6 +12,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.swing.text.StyledEditorKit.BoldAction;
 
+import 
 /**
  * Classe que representa o Gateway do motor de busca.
  * O Gateway coordena as solicitações entre o cliente e os barrels ou a queue.
@@ -30,6 +31,8 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	private static String MULTICAST_ADDRESS;
 	private static int PORT;
 	private static QueueInterface queue;
+	private static boolean ws;
+	private static WebServer_I webServer;
 	private static ReentrantLock lock = new ReentrantLock();
 
 	private static final HashMap<Client_I, ArrayList<URL_Content>> results10 = new HashMap<>();
@@ -54,6 +57,13 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		top_searches = new TopSearches();
 		clientes = new ArrayList<>();
 		queue = (QueueInterface) Naming.lookup(f.lookup[0]);
+		ws = false;
+	}
+
+	public void ws_conn() throws RemoteException {
+		ws = true;
+		webServer = (Request) Naming.lookup("rmi://localhost:2500/WebServer");
+		System.out.println("WebServer Ligado");
 	}
 
 	public boolean can_join() throws RemoteException {

@@ -121,4 +121,6 @@ public interface Request extends Remote {
      * @throws RemoteException
      */
     public boolean can_join() throws RemoteException;
+
+    public void ws_conn() throws RemoteException;
 }

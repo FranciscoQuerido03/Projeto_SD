@@ -15,6 +15,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 
 import org.springframework.stereotype.Controller;
@@ -26,19 +27,55 @@ import javax.servlet.http.HttpServletRequest;
 
 
 @Controller
-public class WelcomeTeste{
+public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
 
     public static Registry registry;
+    public static Registry registry2;
     public static Request Gateway;
     public static Map<String, Client> clientesAtivos = new HashMap<>(); // Mapa para armazenar os clientes ativos
 
 
-    @GetMapping("/")
-    public String welcome(Model model) {
-        try {
+    public WelcomeTeste() throws RemoteException{
+        super();
+        try{
+            startRMIRegistry();
             registry = LocateRegistry.getRegistry("localhost", 1098);
             Gateway = (Request) registry.lookup("request");
 
+            Gateway.ws_conn();
+        } catch (RemoteException | NotBoundException e) {
+            System.out.println("Inicializado sem sucesso!!!");
+            e.printStackTrace();
+        }
+
+    }
+
+    private void startRMIRegistry() {
+        try {
+            Registry existingRegistry = LocateRegistry.getRegistry(2500);
+            
+            if (existingRegistry == null) {
+                Registry registry = LocateRegistry.createRegistry(2500);
+                registry.rebind("/WebServer", this);
+                System.out.println("RMI registry created and object bound");
+            } else {
+                existingRegistry.rebind("/WebServer", this);
+            }
+        } catch (RemoteException e) {
+            System.err.println("Error starting or accessing RMI registry:");
+            e.printStackTrace();
+        }
+    }
+    
+
+    @Override
+    public void update() throws RemoteException {
+        System.out.println("Update received");
+    }
+
+    @GetMapping("/")
+    public String welcome(Model model) {
+        try {
             //Cria um novo cliente e adiciona-o ao mapa de clientes ativos
             Client c = new Client();
             String clienteId = UUID.randomUUID().toString();
@@ -49,7 +86,7 @@ public class WelcomeTeste{
             System.out.println("Cliente criado com sucesso: " + clienteId);
 
             System.out.println("Inicializado com sucesso!!!");
-        } catch (RemoteException | NotBoundException e) {
+        } catch (RemoteException e) {
             System.out.println("Inicializado sem sucesso!!!");
             e.printStackTrace();
         }
