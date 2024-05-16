@@ -67,8 +67,6 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
         messagingController.onMessage(m);
     }
 
-
-
     @GetMapping("/")
     public String welcome(Model model) {
         try {
