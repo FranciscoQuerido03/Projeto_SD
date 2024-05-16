@@ -40,6 +40,9 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
     @Autowired
     private HackerNewsService hackerNewsService;
 
+    @Autowired
+    private BoredService boredService;
+
     public WelcomeTeste() throws RemoteException{
         super();
 
@@ -141,8 +144,8 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
     @GetMapping("/search")
     public String search(@ModelAttribute Query pesquisa, Model model) throws RemoteException {
         Client c = clientesAtivos.get(pesquisa.getClientId());
-        // Create a Message object and add it to the model with the correct attribute name
         Gateway.request10(c, new Message(""), -1);
+
         Query m = new Query();
         model.addAttribute("query", m);
 
@@ -179,7 +182,7 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
 
             if(content.size() < 10)
                 Next = false;
-            
+
             if(pageNumber == 0)
                 Previous = false;
 
@@ -253,25 +256,35 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
 
 
     @GetMapping("/hackernews_search")
-    public String hackernewsSearch(@ModelAttribute Query pesquisa, Model model) {
+    public String hackernewsSearch(@ModelAttribute Query pesquisa, Model model) throws IOException, ExecutionException, InterruptedException {
         List<String> keywords = Arrays.asList(pesquisa.getContent().split(" "));
-        try {
-            List<HackerNewsItemRecord> stories = hackerNewsService.fetchTopStoriesWithKeywords(keywords);
-            List<String> urls = stories.stream()
-                    .map(HackerNewsItemRecord::url)
-                    .collect(Collectors.toList());
+        List<HackerNewsItemRecord> stories = hackerNewsService.fetchTopStoriesWithKeywords(keywords);
+        List<String> urls = stories.stream()
+                .map(HackerNewsItemRecord::url)
+                .collect(Collectors.toList());
 
-            Query m = new Query();
-            model.addAttribute("query", m);
+        Query m = new Query();
+        model.addAttribute("query", m);
 
-            model.addAttribute("content", stories);
+        model.addAttribute("content", stories);
 
-            System.out.println("URLS: " + urls);
-        } catch (IOException | InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-            model.addAttribute("error", "Ocorreu um erro ao buscar as histórias do Hacker News.");
-        }
+        System.out.println("URLS: " + urls);
         return "hackernews_results";
+    }
+
+
+    @GetMapping("/bored")
+    public String bored(Model model) {
+        Query m = new Query();
+        model.addAttribute("query", m);
+        return "bored";
+    }
+
+    @GetMapping("/bored_results")
+    public String boredSearch(@ModelAttribute Query pesquisa, Model model) {
+        BoredActivity boredActivity = boredService.getBoredActivity(pesquisa.getContent());
+        model.addAttribute("boredActivity", boredActivity);
+        return "bored_results";
     }
 
     @GetMapping("/disconnect")

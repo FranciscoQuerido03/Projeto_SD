@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Pages Results</title>
+    <script src="/Redirect.js"></script>
+    <link rel="stylesheet" href="/results.css">
 
 </head>
 <body>
     <h1>Pages Results</h1>
-    <div th:if="${not #lists.isEmpty(content)}">
+    <div class="Results" th:if="${not #lists.isEmpty(content)}">
         <ul>
             <li th:each="result : ${content}">
                 <a th:href="${result.url}" th:text="${result.title}"></a>
@@ -18,6 +20,9 @@
     <div th:if="${#lists.isEmpty(content)}">
         <h3>Error</h3>
         <p>Service unavailable due to internal problems...</p>
+    </div>
+    <div class="Botoes">
+        <button th:onclick="|window.location.href='@{/menu}'|">Voltar</button>
     </div>
 </body>
 </html>

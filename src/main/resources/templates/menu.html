@@ -1,118 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <title>Googol</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script th:inline="javascript">
-      /*<![CDATA[*/
-      var clientId = localStorage.getItem('clientId');
-      document.addEventListener('DOMContentLoaded', function() {
-          if (!clientId) {
-              window.location.href = "/";
-          }
-      });
-      function setClientId() {
-          document.getElementById('clientIdField').value = clientId;
-      }
-      /*]]>*/
-    </script>
-  </head>
-  <style media="screen">
-
-    html {
-      block-size: 100%;
-    }
-
-    body {
-      min-block-size: 100%;
-      font-family: system-ui, sans-serif;
-
-      display: grid;
-      place-content: center;
-    }
-
-    .title {
-      text-align: center;
-      margin-bottom: 5vmin;
-      font-size: 5vmin;
-      font-weight: bold;
-      border: 5px solid black;
-      border-radius: 25px;
-      background: white;
-      padding: 10px;
-    }
-
-    .pesquisa_button {
-      appearance: none;
-      outline: none;
-      font-size: 5vmin;
-      border: 3px solid black;
-      background: white;
-
-      --distance: 0;
-      transform: translateX(var(--distance)) translateY(var(--distance));
-
-      @media (prefers-reduced-motion: no-preference) {
-        will-change: transform;
-        transition: transform .2s ease ;
-      }
-    }
-
-    .shadow-set {
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2.5vmin;
-
-    & > li {
-      display: inline-flex;
-      background: black;
-
-      &:is(:hover, :focus-within) > button:not(:active) {
-        --distance: -10px;
-      }
-    }
-
-
-
-    & button {
-      appearance: none;
-      outline: none;
-      font-size: 5vmin;
-      border: 3px solid black;
-      border-radius: 10px;
-      background: white;
-      padding: 10px;
-
-      --distance: 0;
-      transform: translateX(var(--distance)) translateY(var(--distance));
-
-      @media (prefers-reduced-motion: no-preference) {
-        will-change: transform;
-        transition: transform .2s ease ;
-      }
-    }
-
-    & a {
-      border: 3px solid black;
-      border-radius: 10px;
-      padding-left: 15px;
-      padding-right: 15px;
-      font-size: 50px;
-    }
-
-    & > li:last-child {
-      margin: auto;
-    }
-  }
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-}
-
-  </style>
+<head>
+  <title>Googol</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="/menu.css">
+  <script src="/Redirect.js"></script>
+</head>
 
   <body>
     <h1 class="title">Escolha a opção</h1>
@@ -120,11 +13,12 @@
       <li><button th:onclick="'window.location.href=\'/index\' '"><i class="fa-solid fa-thumbtack"></i>  Indexar</button></li>
       <form th:action="@{/search}" th:object="${query}" method="get" onsubmit="setClientId()">
         <input type="hidden" id="clientIdField" th:field="*{clientId}">
-        <button class="pesquisa_button" type="submit"><i class="fa-solid fa-magnifying-glass"></i>  Pesquisar</button>
+        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i>  Pesquisar</button>
       </form>
       <li><button th:onclick="'window.location.href=\'/info\' '"><i class="fa-solid fa-chart-column"></i>  Status Console</button></li>
       <li><button th:onclick="'window.location.href=\'/pages\' '"><i class="fa-solid fa-link"></i>  Ligação de Paginas</button></li>
-      <li><a th:href="@{/disconnect}"><i class="fa-solid fa-power-off"></i></a></li>
+      <li><button th:onclick="'window.location.href=\'/bored\' '"><i class="fa-solid fa-dice"></i>  Bored</button>
+      <li><button th:onclick="'window.location.href=\'/disconnect\' '"><i class="fa-solid fa-power-off"></i> Sair</button></li>
     </ul>
   </body>
 </html>

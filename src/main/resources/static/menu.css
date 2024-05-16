@@ -1,0 +1,87 @@
+
+    html {
+      block-size: 100%;
+    }
+
+    body {
+      min-block-size: 100%;
+      font-family: system-ui, sans-serif;
+
+      display: grid;
+      place-content: center;
+    }
+
+    .title {
+      text-align: center;
+      margin-bottom: 5vmin;
+      font-size: 5vmin;
+      font-weight: bold;
+      border: 5px solid black;
+      border-radius: 25px;
+      background: white;
+      padding: 10px;
+    }
+
+    .shadow-set {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2.5vmin;
+
+    & > li {
+      display: inline-flex;
+      background: white;
+
+      &:is(:hover, :focus-within) > button:not(:active) {
+        --distance: -10px;
+      }
+    }
+
+    & button {
+      appearance: none;
+      outline: none;
+      font-size: 5vmin;
+      border: 3px solid black;
+      border-radius: 10px;
+      background: white;
+      padding: 10px;
+
+      --distance: 0;
+      transform: translateX(var(--distance)) translateY(var(--distance));
+
+      @media (prefers-reduced-motion: no-preference) {
+        will-change: transform;
+        transition: transform .2s ease ;
+      }
+    }
+  }
+
+  form button {
+    appearance: none;
+    outline: none;
+    font-size: 5vmin;
+    border: 3px solid black;
+    border-radius: 10px;
+    background: white;
+    padding: 10px;
+  
+    --distance: 0;
+    transform: translateX(var(--distance)) translateY(var(--distance));
+  
+    @media (prefers-reduced-motion: no-preference) {
+      will-change: transform;
+      transition: transform .2s ease ;
+    }
+  
+    &:hover:not(:active) {
+      --distance: -10px;
+    }
+  }
+  
+
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}

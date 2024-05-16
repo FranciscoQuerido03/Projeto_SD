@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record HackerNewsItemRecord(
         Integer id,
-        Boolean deleted,
         String type,
         String by,
         Long time,
