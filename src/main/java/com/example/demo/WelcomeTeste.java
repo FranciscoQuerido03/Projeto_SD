@@ -10,9 +10,15 @@ import com.example.demo.sd_projeto.Request;
 import com.example.demo.sd_projeto.URL_Content;
 import com.example.demo.sd_projeto.WebServer_I;
 
+import sd_projeto.Client;
+import sd_projeto.Client_I;
+import sd_projeto.Message;
+import sd_projeto.Query;
+import sd_projeto.Request;
+import sd_projeto.URL_Content;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.rmi.AccessException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -20,13 +26,16 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+
 
 
 @Controller
@@ -37,11 +46,13 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
     public static Request Gateway;
     public static Map<String, Client> clientesAtivos = new HashMap<>(); // Mapa para armazenar os clientes ativos
 
+    @Autowired
+    private HackerNewsService hackerNewsService;
 
     public WelcomeTeste() throws RemoteException{
         super();
 
-        LocateRegistry.createRegistry(2500).rebind("WebServer", this);        
+        LocateRegistry.createRegistry(2500).rebind("WebServer", this);
 
         try{
             registry = LocateRegistry.getRegistry("localhost", 1098);
@@ -56,13 +67,13 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
         }
 
     }
-    
+
     @Autowired
     private Updates messagingController;
 
     @Override
     public void update(Message m) throws RemoteException {
-        
+
         // Call the WebSocket controller method to send the message
         messagingController.onMessage(m);
     }
@@ -109,30 +120,34 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
     @GetMapping("/indexing")
     public String indexing(@ModelAttribute Query pesquisa, Model model) throws RemoteException {
 
-        //Safty check
-        if (Objects.equals(pesquisa.getClientId(), "") || Objects.equals(pesquisa.getContent(), "")){
+        // Safty check
+        if (Objects.equals(pesquisa.getClientId(), "") || pesquisa.getUrls().isEmpty()){
             return "redirect:/";
         }
 
-        try{
+        try {
             String clientId = pesquisa.getClientId();
             Client c = clientesAtivos.get(clientId);
+            System.out.println("Conteudo "+pesquisa.getContent());
 
 
-            Message querry = new Message(pesquisa.getContent());
-            String content = "Indexação realizada com sucesso!";
-            model.addAttribute("content", content);
-
-            Gateway.send_request_queue(c, querry);
-
-            }catch (RemoteException e){
-                System.out.println("=======================================");
-                e.printStackTrace();
+            // Itera sobre os URLs e envia cada um para indexação
+            for (String url : pesquisa.getUrls()) {
+                System.out.println("URL a indexar: " + url);
+                Message querry = new Message(url);
+                Gateway.send_request_queue(c, querry);
             }
 
+            String content = "Indexação realizada com sucesso!";
+            model.addAttribute("content", content);
+        } catch (RemoteException e) {
+            System.out.println("=======================================");
+            e.printStackTrace();
+        }
 
         return "indexed";
     }
+
 
     @GetMapping("/search")
     public String search(@ModelAttribute Query pesquisa, Model model) throws RemoteException {
@@ -225,7 +240,7 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
             Client c = clientesAtivos.get(clientId);
 
             Message querry = new Message(pesquisa.getContent());
-            ArrayList<URL_Content> content = Gateway.request10((Client_I) c, querry, 0);
+            ArrayList<URL_Content> content = Gateway.request10(c, querry, 0);
 
             if(content.get(0).title.equals("Falha Ocurrida")){
                 content = new ArrayList<>();
@@ -252,6 +267,28 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
     @GetMapping("/hackernews")
     public String hackernews(Model model) {
         return "hackernews";
+    }
+
+    @GetMapping("/hackernews_search")
+    public String hackernewsSearch(@ModelAttribute Query pesquisa, Model model) {
+        List<String> keywords = Arrays.asList(pesquisa.getContent().split(" "));
+        try {
+            List<HackerNewsItemRecord> stories = hackerNewsService.fetchTopStoriesWithKeywords(keywords);
+            List<String> urls = stories.stream()
+                    .map(HackerNewsItemRecord::url)
+                    .collect(Collectors.toList());
+
+            Query m = new Query();
+            model.addAttribute("query", m);
+
+            model.addAttribute("content", stories);
+
+            System.out.println("URLS: " + urls);
+        } catch (IOException | InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            model.addAttribute("error", "Ocorreu um erro ao buscar as histórias do Hacker News.");
+        }
+        return "hackernews_results";
     }
 
 }
