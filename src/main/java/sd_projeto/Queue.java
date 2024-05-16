@@ -44,11 +44,7 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
      */
     @Override
     public synchronized String getFirst() throws RemoteException {
-        String url = queue.pollFirst();
-        if (url != null) {
-            bloomFilter.add(url);
-        }
-        return url;
+        return queue.pollFirst();
     }
 
     /**
@@ -71,6 +67,7 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
         System.out.println(url);
         if (!bloomFilter.contains(url)) {
             queue.addFirst(url);
+            bloomFilter.add(url);
         }
     }
 
@@ -83,6 +80,7 @@ public class Queue extends UnicastRemoteObject implements QueueInterface {
     public synchronized void addLast(String url) throws RemoteException {
         if (!bloomFilter.contains(url)) {
             queue.addLast(url);
+            bloomFilter.add(url);
         }
     }
 
