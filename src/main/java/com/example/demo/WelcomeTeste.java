@@ -1,25 +1,16 @@
 package com.example.demo;
 
 
-import com.example.demo.forms.Project;
-import com.example.demo.sd_projeto.Client;
-import com.example.demo.sd_projeto.Client_I;
-import com.example.demo.sd_projeto.Message;
-import com.example.demo.sd_projeto.Query;
-import com.example.demo.sd_projeto.Request;
-import com.example.demo.sd_projeto.URL_Content;
-import com.example.demo.sd_projeto.WebServer_I;
-
 import sd_projeto.Client;
-import sd_projeto.Client_I;
 import sd_projeto.Message;
 import sd_projeto.Query;
 import sd_projeto.Request;
 import sd_projeto.URL_Content;
+import sd_projeto.WebServer_I;
+
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
-import java.rmi.AccessException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -164,8 +155,6 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
     public String search_result(@ModelAttribute Query pesquisa, @RequestParam(defaultValue = "0") int pageNumber, Model model) {
 
         //Safty check
-        System.out.println(pesquisa.getClientId());
-        System.out.println(pesquisa.getContent());
         if (Objects.equals(pesquisa.getClientId(), "") || Objects.equals(pesquisa.getContent(), "")){
             return "redirect:/";
         }
@@ -264,10 +253,6 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
         return "pages_results";
     }
 
-    @GetMapping("/hackernews")
-    public String hackernews(Model model) {
-        return "hackernews";
-    }
 
     @GetMapping("/hackernews_search")
     public String hackernewsSearch(@ModelAttribute Query pesquisa, Model model) {
@@ -289,6 +274,13 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
             model.addAttribute("error", "Ocorreu um erro ao buscar as histórias do Hacker News.");
         }
         return "hackernews_results";
+    }
+
+    @GetMapping("/disconnect")
+    public String disconnect(@ModelAttribute Query pesquisa, Model model) {
+        String client = pesquisa.getClientId();
+        clientesAtivos.remove(client);
+        return "redirect:/";
     }
 
 }
