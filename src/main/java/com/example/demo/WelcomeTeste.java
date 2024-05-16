@@ -58,7 +58,7 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
     }
     
     @Autowired
-    private Updates messagingController;
+    private MessagingController messagingController;
 
     @Override
     public void update(Message m) throws RemoteException {

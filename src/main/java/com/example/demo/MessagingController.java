@@ -8,10 +8,10 @@ import org.springframework.web.util.HtmlUtils;
 
 import com.example.demo.sd_projeto.Message;
 
-@RestController // Changed to Controller
-public class Updates {
+@Controller // Changed to Controller
+public class MessagingController {
 
-    @MessageMapping("/message")
+
     @SendTo("/topic/messages")
     public Message onMessage(Message message) {
         String jsonString = "{\"message\": \"" + message.toString() + "\"}";
