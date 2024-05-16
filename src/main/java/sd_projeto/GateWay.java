@@ -6,11 +6,8 @@ import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.*;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantLock;
-
-import javax.swing.text.StyledEditorKit.BoldAction;
 
 /**
  * Classe que representa o Gateway do motor de busca.
@@ -30,6 +27,8 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	private static String MULTICAST_ADDRESS;
 	private static int PORT;
 	private static QueueInterface queue;
+	private static boolean ws;
+	private static WebServer_I webServer;
 	private static ReentrantLock lock = new ReentrantLock();
 
 	private static final HashMap<Client_I, ArrayList<URL_Content>> results10 = new HashMap<>();
@@ -54,6 +53,22 @@ public class GateWay extends UnicastRemoteObject implements Request {
 		top_searches = new TopSearches();
 		clientes = new ArrayList<>();
 		queue = (QueueInterface) Naming.lookup(f.lookup[0]);
+		ws = false;
+	}
+
+	public void ws_conn() throws RemoteException {
+		ws = true;
+		try {
+			webServer = (WebServer_I) Naming.lookup("rmi://localhost:2500/WebServer");
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (NotBoundException e) {
+			e.printStackTrace();
+		}
+		System.out.println(webServer);
+		System.out.println("WebServer Ligado");
 	}
 
 	public boolean can_join() throws RemoteException {
@@ -375,11 +390,15 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
 	public void adm_painel() throws RemoteException {
-		
+		Message m = construct_adm_painel();
 		for(Client_info ci : clientes){
 			if(ci.see_console){
-				ci.c.print_adm_console_on_client(construct_adm_painel());
+				ci.c.print_adm_console_on_client(m);
 			}
+		}
+
+		if(ws){
+			webServer.update(m);
 		}
 	}
 

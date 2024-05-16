@@ -1,6 +1,5 @@
 package sd_projeto;
 
-import java.rmi.*;
 import java.util.ArrayList;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -121,4 +120,6 @@ public interface Request extends Remote {
      * @throws RemoteException
      */
     public boolean can_join() throws RemoteException;
+
+    public void ws_conn() throws RemoteException;
 }

@@ -1,52 +1,79 @@
 package com.example.demo;
 
 
-import com.example.demo.forms.Project;
-
-import org.springframework.web.bind.annotation.PostMapping;
 import sd_projeto.Client;
-import sd_projeto.Client_I;
 import sd_projeto.Message;
 import sd_projeto.Query;
 import sd_projeto.Request;
 import sd_projeto.URL_Content;
+import sd_projeto.WebServer_I;
+
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestParam;
 
-
-import javax.servlet.http.HttpServletRequest;
 
 
 @Controller
-public class WelcomeTeste{
+public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
 
     public static Registry registry;
+    public static Registry registry2;
     public static Request Gateway;
     public static Map<String, Client> clientesAtivos = new HashMap<>(); // Mapa para armazenar os clientes ativos
 
     @Autowired
     private HackerNewsService hackerNewsService;
 
-    @GetMapping("/")
-    public String welcome(Model model) {
-        try {
+    public WelcomeTeste() throws RemoteException{
+        super();
+
+        LocateRegistry.createRegistry(2500).rebind("WebServer", this);
+
+        try{
             registry = LocateRegistry.getRegistry("localhost", 1098);
             Gateway = (Request) registry.lookup("request");
 
+            Gateway.ws_conn();
+
+        } catch (RemoteException | NotBoundException e) {
+            System.out.println("Inicializado sem sucesso!!!");
+            e.printStackTrace();
+
+        }
+
+    }
+
+    @Autowired
+    private Updates messagingController;
+
+    @Override
+    public void update(Message m) throws RemoteException {
+
+        // Call the WebSocket controller method to send the message
+        messagingController.onMessage(m);
+    }
+
+
+
+    @GetMapping("/")
+    public String welcome(Model model) {
+        try {
             //Cria um novo cliente e adiciona-o ao mapa de clientes ativos
             Client c = new Client();
             String clienteId = UUID.randomUUID().toString();
@@ -57,7 +84,7 @@ public class WelcomeTeste{
             System.out.println("Cliente criado com sucesso: " + clienteId);
 
             System.out.println("Inicializado com sucesso!!!");
-        } catch (RemoteException | NotBoundException e) {
+        } catch (RemoteException e) {
             System.out.println("Inicializado sem sucesso!!!");
             e.printStackTrace();
         }
@@ -128,8 +155,6 @@ public class WelcomeTeste{
     public String search_result(@ModelAttribute Query pesquisa, @RequestParam(defaultValue = "0") int pageNumber, Model model) {
 
         //Safty check
-        System.out.println(pesquisa.getClientId());
-        System.out.println(pesquisa.getContent());
         if (Objects.equals(pesquisa.getClientId(), "") || Objects.equals(pesquisa.getContent(), "")){
             return "redirect:/";
         }
@@ -228,10 +253,6 @@ public class WelcomeTeste{
         return "pages_results";
     }
 
-    @GetMapping("/hackernews")
-    public String hackernews(Model model) {
-        return "hackernews";
-    }
 
     @GetMapping("/hackernews_search")
     public String hackernewsSearch(@ModelAttribute Query pesquisa, Model model) {
@@ -253,6 +274,13 @@ public class WelcomeTeste{
             model.addAttribute("error", "Ocorreu um erro ao buscar as histórias do Hacker News.");
         }
         return "hackernews_results";
+    }
+
+    @GetMapping("/disconnect")
+    public String disconnect(@ModelAttribute Query pesquisa, Model model) {
+        String client = pesquisa.getClientId();
+        clientesAtivos.remove(client);
+        return "redirect:/";
     }
 
 }
