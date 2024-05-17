@@ -68,7 +68,6 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
     @Override
     public void update(Message m) throws RemoteException {
 
-        // Call the WebSocket controller method to send the message
         messagingController.onMessage(m);
     }
 
@@ -113,9 +112,11 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
     public String indexing(@ModelAttribute Query pesquisa, Model model) throws RemoteException {
 
         // Safty check
-        if (Objects.equals(pesquisa.getClientId(), "") || pesquisa.getUrls().isEmpty()){
+        if (Objects.equals(pesquisa.getClientId(), ""))
             return "redirect:/";
-        }
+        
+        if(Objects.equals(pesquisa.getContent(), ""))
+            return "redirect:/index";
 
         try {
             String clientId = pesquisa.getClientId();
@@ -156,9 +157,11 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
     public String search_result(@ModelAttribute Query pesquisa, @RequestParam(defaultValue = "0") int pageNumber, Model model) {
 
         //Safty check
-        if (Objects.equals(pesquisa.getClientId(), "") || Objects.equals(pesquisa.getContent(), "")){
+        if (Objects.equals(pesquisa.getClientId(), ""))
             return "redirect:/";
-        }
+        
+        if(Objects.equals(pesquisa.getContent(), ""))
+            return "redirect:/search";
 
         try{
             String clientId = pesquisa.getClientId();
