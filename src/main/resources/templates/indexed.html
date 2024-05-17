@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>Index Status</title>
-
+    <script src="/Redirect.js"></script>
+    <link rel="stylesheet" href="/results.css">
 </head>
 <body>
     <h1>Index Status</h1>
-    <div>
+    <div class="Results">
         <a th:text="${content}"></a>
-        <a th:onclick="|window.location.href='@{/menu}'|">Voltar</a>
     </div>
+    <div class="Botoes">
+        <button th:onclick="|window.location.href='@{/menu}'|">Voltar</button>
+    </div>
+
 </body>
 </html>

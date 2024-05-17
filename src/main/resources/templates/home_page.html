@@ -2,73 +2,9 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
   <head>
     <title>Googol</title>
-    <script>
-      function storeClientId(clientId) {
-          localStorage.setItem('clientId', clientId);
-      }
-    </script>
+    <script src="/StoreId.js"></script>
+    <link rel="stylesheet" href="/home.css">
   </head>
-  <style>
-    html {
-        block-size: 100%;
-    }
-    body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-family: system-ui, sans-serif;
-
-        height: 100%;
-        width: 100%;
-        margin: 0;
-    }
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 80%;
-    }
-    .titulo {
-      text-align: left;
-      margin-bottom: 2vh;
-      font-size: 2rem;
-      font-weight: bold;
-      width: 80%;
-    }
-
-
-    .buttons {
-      & > button:hover,
-      & > button:focus-within {
-        --distance: -10px;
-      }
-
-      & > button:not(:active) {
-        appearance: none;
-        outline: none;
-        font-size: 2rem;
-        border: 3px solid black;
-        background: white;
-        margin-right: 2vh;
-        transform: translateX(var(--distance)) translateY(var(--distance));
-
-        @media (prefers-reduced-motion: no-preference) {
-          will-change: transform;
-          transition: transform .2s ease ;
-        }
-      }
-    }
-
-    .buttons button {
-        font-size: 2rem;
-        border: 3px solid black;
-        background: white;
-        margin-right: 2vh;
-    }
-
-    </style>
-
   <body>
   <div class="container">
     <h1 class="title">Bem-vindo ao Googol!</h1>

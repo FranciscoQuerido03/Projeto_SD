@@ -3,85 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Search Results</title>
+    <script src="/Redirect.js"></script>
+    <link rel="stylesheet" href="/results.css">
 </head>
-
-<style>
-    html {
-        block-size: 100%;
-    }
-    body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-family: system-ui, sans-serif;
-
-        height: 100%;
-        width: 100%;
-        margin: 0;
-    }
-    .Results ul {
-        list-style-type: none;
-        padding: 0; /* Optional: Remove default padding */
-        margin: 0; /* Optional: Remove default margin */
-    }
-
-    .Results li span {
-        font-size: medium;
-        font-weight: bold;
-        font-family: 'Times New Roman', Times, serif;
-    }
-
-    .Results li {
-        border: 3px solid gray;
-        border-radius: 5px;
-        margin: 5px;
-        padding: 5px;
-        font-size: small;
-    }
-
-    .Botoes{
-        margin-top: 15px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        max-width: 300px;
-        padding-bottom: 50px;
-        gap: 10px;
-    }
-
-    .Botoes a,
-    .Botoes button {
-        border-radius: 5px;
-        background-color: #007bff; 
-        color: white; 
-        text-decoration: none; 
-        border: none; 
-        padding: 5px;
-    }
-
-    .Botoes a:hover,
-    .Botoes button:hover {
-        background-color: #0056b3;
-        cursor: pointer;
-    }
-
-    .options {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
-    .Controlos {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        max-width: 300px;
-    }
-
-</style>
 
 <body>
     <h1>Search Results</h1>
