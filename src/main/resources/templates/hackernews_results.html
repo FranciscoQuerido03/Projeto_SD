@@ -12,13 +12,13 @@
     <p th:text="${error}"></p>
 </div>
 <div th:if="${!content.isEmpty()}" class="Results">
+    <form th:action="@{/indexing}" th:object="${query}" method="get" onsubmit="setClientId()">
     <ul>
         <li th:each="story : ${content}">
             <a th:href="${story.url}" th:text="${story.title}"></a>
             <input type="hidden" th:name="'urls'" th:value="${story.url}">
         </li>
     </ul>
-    <form th:action="@{/indexing}" th:object="${query}" method="get" onsubmit="setClientId()">
         <input type="hidden" id="clientIdField" th:field="*{clientId}">
         <button class="form_button">Indexar Resultados</button>
     </form>

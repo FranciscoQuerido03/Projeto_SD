@@ -115,7 +115,7 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
         if (Objects.equals(pesquisa.getClientId(), ""))
             return "redirect:/";
         
-        if(Objects.equals(pesquisa.getContent(), ""))
+        if(pesquisa.getUrls().isEmpty() && Objects.equals(pesquisa.getContent(), ""))
             return "redirect:/index";
 
         try {
