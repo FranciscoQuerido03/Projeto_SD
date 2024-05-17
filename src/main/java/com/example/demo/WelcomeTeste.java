@@ -115,8 +115,10 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
         if (Objects.equals(pesquisa.getClientId(), ""))
             return "redirect:/";
         
-        if(pesquisa.getUrls().isEmpty() && Objects.equals(pesquisa.getContent(), ""))
+        if(pesquisa.getUrls().isEmpty() && Objects.equals(pesquisa.getContent(), "") || !checkUrl(new Message(pesquisa.getUrls().get(0)))) {
             return "redirect:/index";
+        }
+
 
         try {
             String clientId = pesquisa.getClientId();
@@ -227,6 +229,8 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
         if (Objects.equals(pesquisa.getClientId(), "") || Objects.equals(pesquisa.getContent(), "")){
             return "redirect:/";
         }
+        if(!checkUrl(new Message(pesquisa.getContent())))
+            return "redirect:/pages";
 
         try{
             String clientId = pesquisa.getClientId();
@@ -264,7 +268,7 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
         List<HackerNewsItemRecord> stories = hackerNewsService.fetchTopStoriesWithKeywords(keywords);
         List<String> urls = stories.stream()
                 .map(HackerNewsItemRecord::url)
-                .collect(Collectors.toList());
+                .toList();
 
         Query m = new Query();
         model.addAttribute("query", m);
@@ -285,7 +289,17 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
 
     @GetMapping("/bored_results")
     public String boredSearch(@ModelAttribute Query pesquisa, Model model) {
-        BoredActivity boredActivity = boredService.getBoredActivity(pesquisa.getContent());
+        String conteudo = pesquisa.getContent();
+        if (!conteudo.matches("\\d+")) {
+            return "redirect:/bored";
+        }else {
+            int numero = Integer.parseInt(conteudo);
+            if (!(numero > 0 && numero <= 5))
+                return "redirect:/bored";
+        }
+
+
+        BoredActivity boredActivity = boredService.getBoredActivity(conteudo);
         model.addAttribute("boredActivity", boredActivity);
         return "bored_results";
     }
@@ -297,4 +311,7 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
         return "redirect:/";
     }
 
+    private static boolean checkUrl(Message conteudo) {
+        return conteudo.toString().startsWith("http://") || conteudo.toString().startsWith("https://");
+    }
 }

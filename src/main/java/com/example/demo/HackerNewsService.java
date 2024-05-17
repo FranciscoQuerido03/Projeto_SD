@@ -16,7 +16,7 @@ public class HackerNewsService {
 
     private static final String TOP_STORIES_URL = "https://hacker-news.firebaseio.com/v0/topstories.json";
     private static final String STORY_BASE_URL = "https://hacker-news.firebaseio.com/v0/item/";
-    private static final String COMMENT_BASE_URL = "https://news.ycombinator.com/item?id=";
+
     private final RestTemplate restTemplate = new RestTemplate();
     private final ExecutorService executor = Executors.newFixedThreadPool(10); // Pool de threads para paralelismo
 
@@ -26,18 +26,13 @@ public class HackerNewsService {
         List<Integer> topStoryIds = new ArrayList<>();
         topStoryIdsNode.forEach(id -> topStoryIds.add(id.asInt()));
 
-        // Filtrar histórias por palavras-chave de forma assíncrona
-        List<CompletableFuture<HackerNewsItemRecord>> storyFutures = topStoryIds.stream()
+        // Filtrar histórias por palavras-chave
+        return topStoryIds.stream()
                 .map(id -> CompletableFuture.supplyAsync(() -> fetchStory(id), executor))
-                .toList();
-
-        List<HackerNewsItemRecord> stories = storyFutures.stream()
                 .map(CompletableFuture::join)
                 .filter(story -> story != null && story.title() != null &&
                         keywords.stream().anyMatch(story.title()::contains))
                 .toList();
-
-        return stories;
     }
 
     private HackerNewsItemRecord fetchStory(int id) {
