@@ -776,7 +776,8 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 							int newArrayLength = existingArray.length + 1;
 							int[] newArray = Arrays.copyOf(existingArray, newArrayLength);
 							newArray[newArrayLength - 1] = aux_url_num;
-							words_HM.put(w, newArray);
+							links.put(aux_url_num2, newArray);
+							//System.out.println("---->REPETIDO<----- " + w);
 						}
 					}
 				}
