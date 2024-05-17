@@ -115,10 +115,13 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
         if (Objects.equals(pesquisa.getClientId(), ""))
             return "redirect:/";
         
-        if(pesquisa.getUrls().isEmpty() && Objects.equals(pesquisa.getContent(), "") || !checkUrl(new Message(pesquisa.getUrls().get(0)))) {
+        if(pesquisa.getUrls().isEmpty() && Objects.equals(pesquisa.getContent(), "")){
             return "redirect:/index";
         }
-
+        if(!checkUrl(new Message(pesquisa.getUrls().get(0)))){
+            model.addAttribute("invalidUrl", true);
+            return "index";
+        }
 
         try {
             String clientId = pesquisa.getClientId();
@@ -161,7 +164,7 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
         //Safty check
         if (Objects.equals(pesquisa.getClientId(), ""))
             return "redirect:/";
-        
+
         if(Objects.equals(pesquisa.getContent(), ""))
             return "redirect:/search";
 
@@ -226,11 +229,16 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
     public String pages_result(@ModelAttribute Query pesquisa, Model model) {
 
         //Safty check
-        if (Objects.equals(pesquisa.getClientId(), "") || Objects.equals(pesquisa.getContent(), "")){
+        if (Objects.equals(pesquisa.getClientId(), ""))
             return "redirect:/";
-        }
-        if(!checkUrl(new Message(pesquisa.getContent())))
+
+        if(Objects.equals(pesquisa.getContent(), ""))
             return "redirect:/pages";
+
+        if(!checkUrl(new Message(pesquisa.getContent()))){
+            model.addAttribute("invalidUrl", true);
+            return "pages";
+        }
 
         try{
             String clientId = pesquisa.getClientId();
@@ -290,19 +298,19 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
     @GetMapping("/bored_results")
     public String boredSearch(@ModelAttribute Query pesquisa, Model model) {
         String conteudo = pesquisa.getContent();
-        if (!conteudo.matches("\\d+")) {
-            return "redirect:/bored";
-        }else {
-            int numero = Integer.parseInt(conteudo);
-            if (!(numero > 0 && numero <= 5))
-                return "redirect:/bored";
+        boolean invalidNumber = !conteudo.matches("\\d+") || Integer.parseInt(conteudo) <= 0 || Integer.parseInt(conteudo) > 5;
+
+        if (invalidNumber) {
+            model.addAttribute("invalidNumber", invalidNumber);
+            return "bored";
         }
-
-
-        BoredActivity boredActivity = boredService.getBoredActivity(conteudo);
-        model.addAttribute("boredActivity", boredActivity);
-        return "bored_results";
+        else {
+            BoredActivity boredActivity = boredService.getBoredActivity(conteudo);
+            model.addAttribute("boredActivity", boredActivity);
+            return "bored_results";
+        }
     }
+
 
     @GetMapping("/disconnect")
     public String disconnect(@ModelAttribute Query pesquisa, Model model) {
