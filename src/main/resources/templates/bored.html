@@ -10,7 +10,7 @@
 <h1 class="titulo">Bored Api</h1>
 <div class="input">
     <form th:action="@{/bored_results}" th:object="${query}" method="get" onsubmit="setClientId()">
-        <input type="search" placeholder="Quantos Participantes" th:field="*{content}">
+        <input type="search" placeholder="Quantos Participantes (1-5)" th:field="*{content}">
         <input type="hidden" id="clientIdField" th:field="*{clientId}">
         <div class="buttons">
             <button type="submit">Pesquisar</button>
