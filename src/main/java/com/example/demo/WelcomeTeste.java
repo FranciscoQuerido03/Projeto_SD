@@ -54,6 +54,7 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
 
             Gateway.ws_conn();
 
+
         } catch (RemoteException | NotBoundException e) {
             System.out.println("Inicializado sem sucesso!!!");
             e.printStackTrace();
@@ -176,8 +177,14 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
             for(URL_Content u: content)
                 System.out.println("===>" + u.citacao);
 
-            if(content.get(0).title.equals("Falha Ocurrida")){
-                content.get(0).url = null;
+            boolean no_more = false;
+
+            if(!content.isEmpty()){
+                if(content.get(0).title.equals("Falha Ocurrida")){
+                    content.get(0).url = null;
+                }
+            }else{
+                no_more = true;
             }
 
             boolean Next = true;
@@ -188,12 +195,16 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
 
             if(pageNumber == 0)
                 Previous = false;
+            
+            if(no_more)
+                Next = false;
 
             model.addAttribute("pesquisa", pesquisa);
             model.addAttribute("content", content);
             model.addAttribute("pageNumber", pageNumber);
             model.addAttribute("next", Next);
             model.addAttribute("previous", Previous);
+            model.addAttribute("no_more", no_more);
 
 
         } catch (RemoteException e){
