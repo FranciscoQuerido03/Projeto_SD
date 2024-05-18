@@ -116,8 +116,13 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
         if (Objects.equals(pesquisa.getClientId(), ""))
             return "redirect:/";
         
-        if(pesquisa.getUrls().isEmpty() && Objects.equals(pesquisa.getContent(), ""))
+        if(pesquisa.getUrls().isEmpty() && Objects.equals(pesquisa.getContent(), "")){
             return "redirect:/index";
+        }
+        if(!checkUrl(new Message(pesquisa.getUrls().get(0)))){
+            model.addAttribute("invalidUrl", true);
+            return "index";
+        }
 
         try {
             String clientId = pesquisa.getClientId();
@@ -160,7 +165,7 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
         //Safty check
         if (Objects.equals(pesquisa.getClientId(), ""))
             return "redirect:/";
-        
+
         if(Objects.equals(pesquisa.getContent(), ""))
             return "redirect:/search";
 
@@ -235,8 +240,15 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
     public String pages_result(@ModelAttribute Query pesquisa, Model model) {
 
         //Safty check
-        if (Objects.equals(pesquisa.getClientId(), "") || Objects.equals(pesquisa.getContent(), "")){
+        if (Objects.equals(pesquisa.getClientId(), ""))
             return "redirect:/";
+
+        if(Objects.equals(pesquisa.getContent(), ""))
+            return "redirect:/pages";
+
+        if(!checkUrl(new Message(pesquisa.getContent()))){
+            model.addAttribute("invalidUrl", true);
+            return "pages";
         }
 
         try{
@@ -275,7 +287,7 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
         List<HackerNewsItemRecord> stories = hackerNewsService.fetchTopStoriesWithKeywords(keywords);
         List<String> urls = stories.stream()
                 .map(HackerNewsItemRecord::url)
-                .collect(Collectors.toList());
+                .toList();
 
         Query m = new Query();
         model.addAttribute("query", m);
@@ -296,10 +308,20 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
 
     @GetMapping("/bored_results")
     public String boredSearch(@ModelAttribute Query pesquisa, Model model) {
-        BoredActivity boredActivity = boredService.getBoredActivity(pesquisa.getContent());
-        model.addAttribute("boredActivity", boredActivity);
-        return "bored_results";
+        String conteudo = pesquisa.getContent();
+        boolean invalidNumber = !conteudo.matches("\\d+") || Integer.parseInt(conteudo) <= 0 || Integer.parseInt(conteudo) > 5;
+
+        if (invalidNumber) {
+            model.addAttribute("invalidNumber", invalidNumber);
+            return "bored";
+        }
+        else {
+            BoredActivity boredActivity = boredService.getBoredActivity(conteudo);
+            model.addAttribute("boredActivity", boredActivity);
+            return "bored_results";
+        }
     }
+
 
     @GetMapping("/disconnect")
     public String disconnect(@ModelAttribute Query pesquisa, Model model) {
@@ -308,4 +330,7 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
         return "redirect:/";
     }
 
+    private static boolean checkUrl(Message conteudo) {
+        return conteudo.toString().startsWith("http://") || conteudo.toString().startsWith("https://");
+    }
 }
