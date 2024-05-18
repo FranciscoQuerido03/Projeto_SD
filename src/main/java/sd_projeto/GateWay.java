@@ -132,6 +132,10 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			c.print_adm_console_on_client(construct_adm_painel());
 	}
 
+	public Message resquet_adm_painel_ws() throws RemoteException {
+		return construct_adm_painel();
+	}
+
 	/**
 	 * Método para obter informações sobre um cliente.
 	 * @param c O cliente.
@@ -176,7 +180,7 @@ public class GateWay extends UnicastRemoteObject implements Request {
 				long inicio_pedido = System.currentTimeMillis();
 				resposta = barrels[lb].barrel.request(client_request.toLowerCase());
 				long fim_pedido = System.currentTimeMillis();
-				barrels[lb].avg_time = (barrels[lb].avg_time + ((fim_pedido - inicio_pedido) / 1000)) / 2;
+				barrels[lb].avg_time = (barrels[lb].avg_time + (fim_pedido - inicio_pedido)) / 2;
 				lb++;
 			} else {
 				client.print_err_2_client(new Message(Erro_Indisponibilidade));
@@ -406,16 +410,25 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 */
 	public void adm_painel() throws RemoteException {
 		Message m = construct_adm_painel();
-		for(Client_info ci : clientes){
-			if(ci.see_console){
-				ci.c.print_adm_console_on_client(m);
+		for (Client_info ci : clientes) {
+			if (ci.see_console) {
+				try {
+					ci.c.print_adm_console_on_client(m);
+				} catch (RemoteException e) {
+					System.err.println("Failed to contact client: It is probably down");
+				}
 			}
 		}
-
-		if(ws){
-			webServer.update(m);
+	
+		if (ws) {
+			try {
+				webServer.update(m);
+			} catch (RemoteException e) {
+				System.err.println("Failed to update web server: It is probably down");
+			}
 		}
 	}
+	
 
 	/**
 	 * Método para construir o painel de administração do sistema.

@@ -5,6 +5,8 @@ import sd_projeto.*;
 
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
@@ -184,6 +186,13 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
 
             boolean no_more = false;
 
+            for(URL_Content c1: content){
+                System.out.println(c1.title);
+                System.out.println(c1.url);
+                System.out.println(c1.citacao);
+            }
+
+
             if(!content.isEmpty()){
                 if(content.get(0).title.equals("Falha Ocurrida")){
                     content.get(0).url = null;
@@ -224,6 +233,46 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
 
     @GetMapping("/info")
     public String info(Model model) {
+
+        try {
+            Message console = Gateway.resquet_adm_painel_ws();
+            String consola = console.toString();
+            String[] sections = consola.split("\n");
+
+            String on_svs = sections[2];
+
+            StringBuilder common_s = new StringBuilder();
+            StringBuilder resp_t = new StringBuilder();
+
+            int index = 5;
+            while (index < sections.length && !sections[index].equals("Average response time: ")) {
+                if (!sections[index].trim().isEmpty()) {
+                    common_s.append(sections[index]).append("<br>");
+                }
+                index++;
+            }
+
+            // Extract 'resp_t'
+            if (index + 2 < sections.length) {
+                for (int i = index + 2; i < sections.length; i++) {
+                    if (!sections[i].trim().isEmpty()) {
+                        resp_t.append(sections[i]).append("<br>");
+                    }else
+                        break;
+                }
+            }
+
+            model.addAttribute("on_svs", on_svs);
+            model.addAttribute("comm", common_s.toString());
+            model.addAttribute("resp", resp_t.toString());
+            // System.out.println("on " + on_svs);
+            // System.out.println("comm " + common_s.toString());
+            // System.out.println("resp " + resp_t.toString());
+            
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        
         return "info";
     }
 

@@ -10,9 +10,7 @@ function setConnected(connected) {
         document.getElementById("connect").removeAttribute("disabled");
         document.getElementById("disconnect").setAttribute("disabled", "");
     }
-    document.getElementById("SV_ON").innerHTML = "";
-    document.getElementById("Search").innerHTML = "";
-    document.getElementById("Response").innerHTML = "";
+
 }
 
 function connect() {
@@ -37,11 +35,12 @@ function disconnect() {
 
 function showMessage(message) {
     var lines = message.split('\n');
+    var jsonObject;
 
     for (var i = 0; i < lines.length; i++) {
         if (lines[i].trim().startsWith('{')) {
             try {
-                var jsonObject = JSON.parse(lines[i]);
+                jsonObject = JSON.parse(lines[i]);
                 console.log("Line " + (i + 1) + ": ", jsonObject);
             } catch (error) {
                 console.error("Error parsing JSON on line " + (i + 1) + ": ", error.message);
@@ -49,15 +48,29 @@ function showMessage(message) {
         }
     }
 
-    document.getElementById("SV_ON").insertRow();
-    document.getElementById("SV_ON").textContent = jsonObject.on_svs;
-    document.getElementById("Search").insertRow();
-    document.getElementById("Search").textContent = jsonObject.common_s;
-    document.getElementById("Response").insertRow();
-    document.getElementById("Response").textContent = jsonObject.resp_t;
+    if (jsonObject) {
+        var svOnTable = document.getElementById("SV_ON");
+        var searchTable = document.getElementById("Search");
+        var responseTable = document.getElementById("Response");
 
-    // document.getElementById("messages").insertRow();
-    // document.getElementById("messages").append(message);
+        // Clear existing rows
+        svOnTable.innerHTML = "";
+        searchTable.innerHTML = "";
+        responseTable.innerHTML = "";
+
+        // Insert new rows
+        var svOnRow = svOnTable.insertRow();
+        var svOnCell = svOnRow.insertCell(0);
+        svOnCell.innerHTML = jsonObject.on_svs;
+
+        var searchRow = searchTable.insertRow();
+        var searchCell = searchRow.insertCell(0);
+        searchCell.innerHTML = "Top Pesquisas<br>" + jsonObject.common_s;
+
+        var responseRow = responseTable.insertRow();
+        var responseCell = responseRow.insertCell(0);
+        responseCell.innerHTML = "Tempo de Resposta dos Servidores<br>" + jsonObject.resp_t;
+    }
 }
 
 window.addEventListener('load',

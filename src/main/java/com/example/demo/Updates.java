@@ -34,7 +34,7 @@ public class Updates {
         int index = 5;
         while (index < sections.length && !sections[index].equals("Average response time: ")) {
             if (!sections[index].trim().isEmpty()) {
-                common_s.append(sections[index]).append("\n");
+                common_s.append(sections[index]).append("<br>");
             }
             index++;
         }
@@ -43,7 +43,7 @@ public class Updates {
         if (index + 2 < sections.length) {
             for (int i = index + 2; i < sections.length; i++) {
                 if (!sections[i].trim().isEmpty()) {
-                    resp_t.append(sections[i]).append("\n");
+                    resp_t.append(sections[i]).append("<br>");
                 }else
                     break;
             }
