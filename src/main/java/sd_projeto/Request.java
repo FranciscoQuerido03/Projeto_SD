@@ -22,7 +22,7 @@ public interface Request extends Remote {
      * @param m A mensagem com o URL a ser adicionado à fila.
      * @throws RemoteException se ocorrer um erro durante a comunicação remota.
      */
-    public void send_request_queue(Client_I c, Message m) throws RemoteException;
+    public boolean send_request_queue(Client_I c, Message m) throws RemoteException;
 
     /**
      * Método para o cliente dizer ao Gateway que quer ver a adm console
@@ -104,7 +104,7 @@ public interface Request extends Remote {
      * @param conteudo A mensagem com o URL alvo.
      * @throws RemoteException se ocorrer um erro durante a comunicação remota.
      */
-    public void links_pointing_to(Client_I c, Message conteudo) throws RemoteException;
+    public ArrayList<URL_Content> links_pointing_to(Client_I c, Message conteudo) throws RemoteException;
 
     /**
      * Envia os links que apontam para um URL específico ao cliente.

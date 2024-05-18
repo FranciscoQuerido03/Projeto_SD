@@ -9,17 +9,23 @@
 </head>
 <body>
     <h1>Pages Results</h1>
-    <div class="Results" th:if="${not #lists.isEmpty(content)}">
-        <ul>
-            <li th:each="result : ${content}">
-                <a th:href="${result.url}" th:text="${result.title}"></a>
-                <p th:text="${result.citacao}"></p>
-            </li>
-        </ul>
+    <div th:if="${!no_more}">
+        <div class="Results" th:if="${content != null and not #strings.isEmpty(content) and content[0].url != null}">
+            <ul>
+                <li th:each="result, index : ${content}">
+                    <span th:text="${index.index + 1}"></span> <a th:href="${result.url}" th:text="${result.title}"></a>
+                    <p th:text="${result.citacao}"></p>
+                </li>
+            </ul>
+        </div>
+        <div class="Erro" th:if="${content[0].url == null}">
+            <h3>Error</h3>
+            <p th:text="${content[0].citacao}"></p>
+        </div>
     </div>
-    <div th:if="${#lists.isEmpty(content)}">
+    <div class="Erro" th:if="${no_more}">
         <h3>Error</h3>
-        <p>Service unavailable due to internal problems...</p>
+        <p>No more results</p>
     </div>
     <div class="Botoes">
         <button th:onclick="|window.location.href='@{/menu}'|">Voltar</button>

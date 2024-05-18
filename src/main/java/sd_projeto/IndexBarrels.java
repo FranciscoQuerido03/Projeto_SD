@@ -103,8 +103,9 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 	 * @param clientRequest url introduzido pelo cliente
      */
 	@Override
-	public void links_pointing_to(String clientRequest) throws RemoteException {
+	public ArrayList<URL_Content> links_pointing_to(String clientRequest) throws RemoteException {
 
+		ArrayList<URL_Content> urlsPointingTo = new ArrayList<>();
 		int valorRequest = -1;
 		for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
 			URL_Content urlContent = entry.getKey();
@@ -116,11 +117,14 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 
 		if (valorRequest == -1) {
 			Conection.err_no_matches(new Message("The URL " + clientRequest + " was not found in the database. Try indexing it first.\n"));
-			return;
+			URL_Content u = new URL_Content("Falha Ocurrida", "");
+			u.citacao = "The URL " + clientRequest + " was not found in the database. Try indexing it first.\n";
+			urlsPointingTo.add(u);
+			return urlsPointingTo;
 		}
 
 		int[] listaInts = links.get(valorRequest);
-		ArrayList<URL_Content> urlsPointingTo = new ArrayList<>();
+
 		if (listaInts != null) {
 			for (int i : listaInts) {
 				for (Map.Entry<URL_Content, Integer> entry : urls.entrySet()) {
@@ -131,6 +135,8 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			}
 		}
 		Conection.answer_pointers(urlsPointingTo);
+
+		return urlsPointingTo;
 	}
 
 	/**
@@ -777,7 +783,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 							int[] newArray = Arrays.copyOf(existingArray, newArrayLength);
 							newArray[newArrayLength - 1] = aux_url_num;
 							links.put(aux_url_num2, newArray);
-							//System.out.println("---->REPETIDO<----- " + w);
+							System.out.println("---->REPETIDO<----- " + w);
 						}
 					}
 				}
