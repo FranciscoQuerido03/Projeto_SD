@@ -27,7 +27,6 @@
     </ul>
     <form th:action="@{/bored_results}" th:object="${query}" method="get" onsubmit="setClientId()">
         <input type="hidden" id="clientIdField" th:field="*{clientId}">
-        <button class="form_button">Nova Atividade</button>
     </form>
 </div>
 <div th:if="${boredActivity == null}">
