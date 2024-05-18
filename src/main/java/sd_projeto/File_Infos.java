@@ -99,6 +99,10 @@ public class File_Infos implements Serializable {
                 case "Downloader":
                     this.goodRead = this.NUM_BARRELS > 0 && this.Address != null && this.Port > 0 && this.lookup != null && exists;
                     break;
+                case "WebServer":
+                    this.goodRead = this.Address != null && this.Port > 0 && this.lookup != null && exists;
+                    break;
+
                 default:
                     this.goodRead = false;
             }

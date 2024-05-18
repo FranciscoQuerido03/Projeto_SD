@@ -58,16 +58,20 @@ public class GateWay extends UnicastRemoteObject implements Request {
 
 	public void ws_conn() throws RemoteException {
 		ws = true;
+		File_Infos f = new File_Infos();
+		f.get_data("WebServer");
+
+		if (!f.goodRead) {
+			System.out.println("Erro na leitura do arquivo de configuração");
+			return;
+		}
+
 		try {
-			webServer = (WebServer_I) Naming.lookup("rmi://localhost:2500/WebServer");
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		} catch (NotBoundException e) {
+			webServer = (WebServer_I) Naming.lookup(f.lookup[0]);
+		} catch (MalformedURLException | NotBoundException | RemoteException e) {
 			e.printStackTrace();
 		}
-		System.out.println(webServer);
+        System.out.println(webServer);
 		System.out.println("WebServer Ligado");
 	}
 

@@ -1,16 +1,13 @@
 package com.example.demo;
 
 
-import sd_projeto.Client;
-import sd_projeto.Message;
-import sd_projeto.Query;
-import sd_projeto.Request;
-import sd_projeto.URL_Content;
-import sd_projeto.WebServer_I;
+import sd_projeto.*;
 
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -45,17 +42,22 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
 
     public WelcomeTeste() throws RemoteException{
         super();
+        File_Infos f = new File_Infos();
+        f.get_data("Client");
+        if (!f.goodRead) {
+            System.out.println("Erro na leitura do arquivo de configuração");
+            return;
+        }
 
         LocateRegistry.createRegistry(2500).rebind("WebServer", this);
 
         try{
-            registry = LocateRegistry.getRegistry("localhost", 1098);
-            Gateway = (Request) registry.lookup("request");
+            //registry = LocateRegistry.getRegistry("localhost", 1098);
+            Gateway = (Request) Naming.lookup(f.lookup[0]);
 
             Gateway.ws_conn();
 
-
-        } catch (RemoteException | NotBoundException e) {
+        } catch (RemoteException | NotBoundException | MalformedURLException e) {
             System.out.println("Inicializado sem sucesso!!!");
             e.printStackTrace();
 
