@@ -195,8 +195,12 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
 	@Override
-	public void send_request_queue(Client_I c, Message m) throws RemoteException {
-		queue.addFirst(m.text.toString());
+	public boolean send_request_queue(Client_I c, Message m) throws RemoteException {
+		if(lb >= 0){
+			queue.addFirst(m.text.toString());
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -345,10 +349,11 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 */
 
 	@Override
-	public void links_pointing_to(Client_I c, Message conteudo) throws RemoteException{
+	public ArrayList<URL_Content> links_pointing_to(Client_I c, Message conteudo) throws RemoteException{
 		client = c;
 		client_request = conteudo.toString().trim();
-		send_request_barrels_pointers();
+		ArrayList<URL_Content> result = send_request_barrels_pointers();
+		return result;
 	}
 
 	/**
@@ -364,7 +369,8 @@ public class GateWay extends UnicastRemoteObject implements Request {
 	 * Método para enviar solicitações de links a apontar para um URL aos barrels.
 	 * @throws RemoteException se ocorrer um erro durante a comunicação remota.
 	 */
-	private void send_request_barrels_pointers() throws RemoteException {
+	private ArrayList<URL_Content> send_request_barrels_pointers() throws RemoteException {
+		ArrayList<URL_Content> result = new ArrayList<>();
 		lock.lock();
 		try {
 			if (lb >= 0) {
@@ -372,16 +378,21 @@ public class GateWay extends UnicastRemoteObject implements Request {
 					lb = 0;
 				System.out.println("lb " + lb);
 				long inicio_pedido = System.currentTimeMillis();
-				barrels[lb].barrel.links_pointing_to(client_request);
+				result = barrels[lb].barrel.links_pointing_to(client_request);
 				long fim_pedido = System.currentTimeMillis();
 				barrels[lb].avg_time = (barrels[lb].avg_time + ((fim_pedido - inicio_pedido) / 100)) / 2;
 				lb++;
 			} else {
 				client.print_err_2_client(new Message(Erro_Indisponibilidade));
+				URL_Content u = new URL_Content("Falha Ocurrida", "");
+				u.citacao = Erro_Indisponibilidade;
+				result.add(u);
 			}
 		} finally {
 			lock.unlock();
 		}
+
+		return result;
 	}
 
 

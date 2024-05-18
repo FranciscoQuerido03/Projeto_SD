@@ -128,17 +128,18 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
             String clientId = pesquisa.getClientId();
             Client c = clientesAtivos.get(clientId);
             System.out.println("Conteudo "+pesquisa.getContent());
-
+            Boolean availability = true;
 
             // Itera sobre os URLs e envia cada um para indexação
             for (String url : pesquisa.getUrls()) {
                 System.out.println("URL a indexar: " + url);
                 Message querry = new Message(url);
-                Gateway.send_request_queue(c, querry);
+                availability = Gateway.send_request_queue(c, querry);
             }
 
             String content = "Indexação realizada com sucesso!";
             model.addAttribute("content", content);
+            model.addAttribute("available", availability);
         } catch (RemoteException e) {
             System.out.println("=======================================");
             e.printStackTrace();
@@ -178,9 +179,6 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
             //Message querry = new Message(message.getContent());
             System.out.println(pageNumber);
             ArrayList<URL_Content> content = Gateway.request10(c, new Message(pesquisa.getContent()), pageNumber);
-
-            for(URL_Content u: content)
-                System.out.println("===>" + u.citacao);
 
             boolean no_more = false;
 
@@ -254,28 +252,31 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
         try{
             String clientId = pesquisa.getClientId();
             Client c = clientesAtivos.get(clientId);
-
-            Message querry = new Message(pesquisa.getContent());
-            ArrayList<URL_Content> content = Gateway.request10(c, querry, 0);
-
-            if(content.get(0).title.equals("Falha Ocurrida")){
-                content = new ArrayList<>();
-//                content.get(0).title = "Universidade de Coimbra";
-//                content.get(0).url = "www.uc.pt";
-//                content.get(0).citacao = "Universidade de Coimbra";
+            if (c == null){
+                return "redirect:/";
             }
 
+            Message querry = new Message(pesquisa.getContent());
+            ArrayList<URL_Content> content = Gateway.links_pointing_to(c, querry);
+
+            boolean no_more = false;
+
+            if(!content.isEmpty()){
+                if(content.get(0).title.equals("Falha Ocurrida")){
+                    content.get(0).url = null;
+                }
+            }else{
+                no_more = true;
+            }
+
+            model.addAttribute("pesquisa", pesquisa);
             model.addAttribute("content", content);
-
-
-            for(URL_Content u : content)
-                System.out.println(u.title + " " + u.url);
+            model.addAttribute("no_more", no_more);
 
         } catch (RemoteException e){
             System.out.println("=======================================");
             e.printStackTrace();
         }
-
 
         return "pages_results";
     }

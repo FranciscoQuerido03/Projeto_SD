@@ -8,8 +8,15 @@
 </head>
 <body>
     <h1>Index Status</h1>
-    <div class="Results">
-        <a th:text="${content}"></a>
+    <div th:if="${available}">
+        <div class="Results">
+            <a th:text="${content}"></a>
+        </div>
+    </div>
+    <div th:if="${!available}">
+        <div class="Results">
+            <a>Storage Components Currently Down...</a>
+        </div>
     </div>
     <div class="Botoes">
         <button th:onclick="|window.location.href='@{/menu}'|">Voltar</button>

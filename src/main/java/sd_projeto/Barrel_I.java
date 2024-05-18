@@ -21,5 +21,5 @@ public interface Barrel_I extends Remote {
 	 * @param clientRequest URL para o qual se deseja encontrar links os a apontar.
 	 * @throws java.rmi.RemoteException se ocorrer um erro durante a execução remota.
 	 */
-    public void links_pointing_to(String clientRequest) throws RemoteException;
+    public ArrayList<URL_Content> links_pointing_to(String clientRequest) throws RemoteException;
 }
