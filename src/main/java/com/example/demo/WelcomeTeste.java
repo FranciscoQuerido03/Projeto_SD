@@ -182,6 +182,13 @@ public class WelcomeTeste extends UnicastRemoteObject implements WebServer_I{
 
             boolean no_more = false;
 
+            for(URL_Content c1: content){
+                System.out.println(c1.title);
+                System.out.println(c1.url);
+                System.out.println(c1.citacao);
+            }
+
+
             if(!content.isEmpty()){
                 if(content.get(0).title.equals("Falha Ocurrida")){
                     content.get(0).url = null;

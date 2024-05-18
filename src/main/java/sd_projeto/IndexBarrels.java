@@ -508,7 +508,7 @@ public class IndexBarrels extends UnicastRemoteObject implements Barrel_I {
 			String[] sections = aux[1].split(" ");
 			//System.out.println("word\n" + m);
 
-			if(sections.length >= 3){
+			if(sections.length >= 2){
 				String word = sections[0];
 				int[] nums_add = new int[sections.length-1];
 
