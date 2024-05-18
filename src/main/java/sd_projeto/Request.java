@@ -122,4 +122,6 @@ public interface Request extends Remote {
     public boolean can_join() throws RemoteException;
 
     public void ws_conn() throws RemoteException;
+
+    public Message resquet_adm_painel_ws() throws RemoteException;
 }

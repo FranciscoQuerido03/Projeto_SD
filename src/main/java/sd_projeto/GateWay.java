@@ -128,6 +128,10 @@ public class GateWay extends UnicastRemoteObject implements Request {
 			c.print_adm_console_on_client(construct_adm_painel());
 	}
 
+	public Message resquet_adm_painel_ws() throws RemoteException {
+		return construct_adm_painel();
+	}
+
 	/**
 	 * Método para obter informações sobre um cliente.
 	 * @param c O cliente.

@@ -39,17 +39,23 @@
                 </thead>
                 <tbody id="SV_ON">
                 <tr>
-                    <td>Servidores online</td>
+                    <td th:text="${on_svs}"></td>
                 </tr>
                 </tbody>
                 <tbody id="Search">
                 <tr>
-                    <td>Top Pesquisas</td>
+                    <td>
+                        Top Pesquisas<br>
+                        <span th:utext="${comm}"></span>
+                    </td>
                 </tr>
                 </tbody>
                 <tbody id="Response">
                 <tr>
-                    <td>Tempo de Resposta dos Servidores</td>
+                    <td>
+                        Tempo de Resposta dos Servidores<br>
+                        <span th:utext="${resp}"></span>
+                    </td>
                 </tr>
                 </tbody>
             </table>
